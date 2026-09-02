@@ -3,6 +3,10 @@
 // textContent / element assignment — never template-string innerHTML — so a
 // hostile run id or any stored field cannot execute script in this page.
 const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
+// Slug for /traps deep links — must mirror trapSlug() in
+// embed/gauntlet-traps/traps.mjs (the module that generates the /traps anchor
+// ids). Sync is enforced by test/trapdeeplinks.test.mjs.
+const trapSlug = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const id = new URLSearchParams(location.search).get('id');
 const card = document.querySelector('#card');
 try {
@@ -18,7 +22,14 @@ try {
   for (const o of (c.outcomes || [])) {
     const a = el('article');
     a.append(el('span', o.status === 'FAIL' ? 'fail' : o.status === 'NOT TESTED' ? 'muted' : '', o.status || (o.pass ? 'PASS' : 'FAIL')));
-    a.append(el('h3', '', o.name), el('p', '', o.detail));
+    // Deep link: a failed trap's name links to its card in the /traps catalog
+    // so the judge can read the full threat model in one click. The link is
+    // built with createElement + textContent (never innerHTML) so stored
+    // trap names cannot inject markup.
+    const nameNode = o.status === 'FAIL' || (!o.pass && o.status !== 'NOT TESTED')
+      ? (() => { const link = document.createElement('a'); link.href = '/traps#trap-' + trapSlug(o.name); link.textContent = o.name; link.className = 'trap-link'; return link; })()
+      : el('h3', '', o.name);
+    a.append(nameNode, el('p', '', o.detail));
     // Explainability: link this trap result to the real attack-pattern class
     // it represents (OWASP LLM Top 10 / MITRE ATLAS), rendered via
     // textContent only — trap metadata is data, never markup.

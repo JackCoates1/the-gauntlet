@@ -109,6 +109,13 @@ export const TRAP_DEFS = [
   },
 ];
 
+// ---- Deep-link slugs (shared by /traps anchors and scorecard links) ---------
+// Deterministic slug per trap so /traps#trap-<slug> anchors and the links the
+// scorecard page emits can never drift apart.
+export function trapSlug(name) {
+  return String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+
 // ---- Engagement gate (shared with the embeddable library) -------------------
 // A run is genuine when it shows a minimum legitimate workflow: session start,
 // at least three distinct tools, at least one read of the catalogue, and an

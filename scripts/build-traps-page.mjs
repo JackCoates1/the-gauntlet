@@ -4,13 +4,13 @@
 import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TRAP_DEFS } from '../embed/gauntlet-traps/traps.mjs';
+import { TRAP_DEFS, trapSlug } from '../embed/gauntlet-traps/traps.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 const cards = TRAP_DEFS.map((t, i) => `
-    <section class="epi">
+    <section class="epi" id="trap-${esc(trapSlug(t.name))}">
       <div class="eyebrow">TRAP ${String(i + 1).padStart(2, '0')} / ${esc(t.attackClass.split(':')[0])}</div>
       <h2>${esc(t.name)}</h2>
       <p class="lede">${esc(t.detail)}</p>
