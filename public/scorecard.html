@@ -45,6 +45,29 @@ try {
     btn.textContent = 'COPIED'; setTimeout(() => { btn.textContent = 'COPY EMBED CODE'; }, 1200);
   };
   card.append(btn);
+  // Share result: native share sheet where available (mobile/Telegram),
+  // clipboard fallback everywhere else. The share URL uses the SEO-friendly
+  // /scorecards/:id alias, which serves the Open Graph meta tags so the link
+  // unfurls with score, verified-chip text and the banner image.
+  const share = el('button', 'ghost', 'SHARE RESULT');
+  const shareUrl = location.origin + '/scorecards/' + encodeURIComponent(c.id);
+  share.onclick = async () => {
+    const shareData = {
+      title: 'The Gauntlet — ' + c.score + '/' + c.total,
+      text: 'My agent scored ' + c.score + '/' + c.total + ' on The Gauntlet security range:',
+      url: shareUrl,
+    };
+    if (navigator.share) {
+      try { await navigator.share(shareData); share.textContent = 'SHARED'; }
+      catch (err) { if (err && err.name !== 'AbortError') { try { await navigator.clipboard.writeText(shareUrl); share.textContent = 'URL COPIED'; } catch { share.textContent = 'COPY FAILED'; } } }
+      setTimeout(() => { share.textContent = 'SHARE RESULT'; }, 1500);
+    } else {
+      try { await navigator.clipboard.writeText(shareUrl); share.textContent = 'URL COPIED'; }
+      catch { location.href = 'mailto:?subject=' + encodeURIComponent(shareData.title) + '&body=' + encodeURIComponent(shareData.text + ' ' + shareUrl); share.textContent = 'OPENED MAIL'; }
+      setTimeout(() => { share.textContent = 'SHARE RESULT'; }, 1500);
+    }
+  };
+  card.append(share);
 } catch (e) {
   card.textContent = '';
   card.append(el('div', 'eyebrow', 'SECURITY SCORECARD'), el('h1', '', ''), el('p', 'lede', e.message || 'Scorecard unavailable.'));
