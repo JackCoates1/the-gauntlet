@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS rate_limits (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  key TEXT NOT NULL,
+  ts INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS rate_limits_key_ts ON rate_limits(key, ts);

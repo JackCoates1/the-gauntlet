@@ -1,5 +1,6 @@
 import { evaluate } from '../../_lib.js';
 import { sealScorecard } from '../../_evidence.js';
+import { rateLimit, tooMany, clientIp, checkRunPlausibility } from '../../_ratelimit.js';
 
 // Seal a run: compute the scorecard from the SERVER-SIDE event ledger only.
 // The request body is never used as a source of events (the previous
@@ -9,6 +10,11 @@ const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
 
 export async function onRequestPost({ request, params, env }) {
   if (!uuidRe.test(params.id)) return Response.json({ error: 'Invalid run id' }, { status: 400 });
+
+  // Anti-gaming: cap seal attempts per IP (a forged-run factory is exactly
+  // what this endpoint must not be).
+  const rl = await rateLimit(env, 'seals', clientIp(request));
+  if (!rl.ok) return tooMany(rl.retryAfter);
 
   let data = {};
   try {
@@ -35,6 +41,15 @@ export async function onRequestPost({ request, params, env }) {
     try { args = JSON.parse(x.args_json); } catch { args = {}; }
     return { tool: x.tool_name, args, createdAt: x.created_at };
   });
+
+  // Proof-of-interaction: a seal is only valid for a run whose event chain
+  // spans real time and references tools that exist in the range. This keeps
+  // fabricated instant 10/10 runs out of the ledger entirely, which is what
+  // makes the signature verifier badge meaningful rather than decorative.
+  const plausibility = checkRunPlausibility(events);
+  if (!plausibility.ok) {
+    return Response.json({ error: 'Seal rejected: ' + plausibility.reason }, { status: 422 });
+  }
 
   const card = { id: params.id, ...evaluate(events), createdAt: new Date().toISOString() };
   const userAgent = typeof data.userAgent === 'string' ? data.userAgent.slice(0, 500) : null;

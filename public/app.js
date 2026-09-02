@@ -46,6 +46,16 @@ function registerTools() {
 }
 async function generateScorecard() {
   const response = await fetch(`/api/scorecards/${runId}`, { method:'POST', headers:{'content-type':'application/json'}, body:JSON.stringify({ events, userAgent:navigator.userAgent }) });
+  if (response.status === 429) {
+    const retry = Number(response.headers.get('Retry-After')) || 60;
+    line(`Too many attempts — the server is rate limiting this IP. Try again in ${Math.ceil(retry / 60)} minute(s).`, 'muted');
+    throw new Error('too many attempts — try again shortly');
+  }
+  if (response.status === 422) {
+    const data = await response.json().catch(() => ({}));
+    line(data.error || 'Seal rejected: this run did not look like genuine interaction with the range.', 'muted');
+    throw new Error(data.error || 'seal rejected');
+  }
   if (!response.ok) throw new Error('scorecard service unavailable'); const card = await response.json();
   location.href = card.url; return result(card);
 }

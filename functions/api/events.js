@@ -10,6 +10,8 @@ const MAX_TOOL_LEN = 64;
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const isoRe = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 
+import { rateLimit, tooMany, clientIp } from '../_ratelimit.js';
+
 export async function onRequestPost({ request, env }) {
   let body;
   try {
@@ -19,6 +21,11 @@ export async function onRequestPost({ request, env }) {
   } catch {
     return Response.json({ error: 'Invalid JSON' }, { status: 400 });
   }
+
+  // Anti-gaming: per-IP sliding-window cap so a scripted loop can't flood
+  // the public ledger with forged events.
+  const rl = await rateLimit(env, 'events', clientIp(request));
+  if (!rl.ok) return tooMany(rl.retryAfter);
 
   const runId = typeof body.runId === 'string' ? body.runId : '';
   const event = body.event && typeof body.event === 'object' ? body.event : null;
