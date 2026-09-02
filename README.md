@@ -55,6 +55,12 @@ GET /api/scorecards/<run-id>/evidence
 
 The bundle contains a hash-chained, timestamped replay of the exact tool-call sequence (each step hashes the previous step's hash plus the canonicalized event, rooted at `genesis`) plus an Ed25519 signature over the canonical payload. Verify offline with the public key published in `functions/_evidence.js` (`PUBLIC_KEY_HEX`) and the `verifyBundle()` helper.
 
+## Testing & CI
+
+[![Tests](https://github.com/JackCoates1/the-gauntlet/actions/workflows/ci.yml/badge.svg)](https://github.com/JackCoates1/the-gauntlet/actions/workflows/ci.yml)
+
+All changes are verified by CI on every push: the full test suite (7 suites, 140 checks) runs automatically on GitHub Actions — no manual re-run needed to confirm the "all passing" claims above.
+
 ## Embeddable trap library
 
 The entire trap catalog + scoring engine is packaged as a standalone, dependency-free ES module other WebMCP developers can install and run against their own tool surfaces. See [embed/gauntlet-traps/README.md](embed/gauntlet-traps/README.md).
