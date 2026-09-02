@@ -5,4 +5,4 @@ pages_build_output_dir = "./public"
 [[d1_databases]]
 binding = "GAUNTLET_DB"
 database_name = "the-gauntlet"
-database_id = "REPLACE_WITH_D1_DATABASE_ID"
+database_id = "e17712e9-6305-4f16-848c-8ca1fc7cd671"
