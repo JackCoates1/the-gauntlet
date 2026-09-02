@@ -126,6 +126,48 @@ export async function buildEvidenceBundle(run, card, signingKeyHex) {
   };
 }
 
+// ---- Verifier badge (leaderboard) ------------------------------------------
+// At seal time the scorecard is signed over a canonical payload that includes
+// the event-ledger chain root. The badge is earned only if the stored
+// signature verifies AND the ledger still re-derives to the same chain root,
+// so a fabricated run (or one whose ledger was tampered with post-seal) can
+// never pass.
+export function sealPayload(runId, card, eventsRoot) {
+  return {
+    runId,
+    createdAt: card.createdAt,
+    score: card.score,
+    total: card.total,
+    eventsRoot,
+    algorithm: 'Ed25519',
+    purpose: 'leaderboard-verification',
+  };
+}
+
+// Sign at seal time. Returns base64 signature (or null if no key configured).
+export async function sealScorecard(runId, card, events, signingKey) {
+  if (!signingKey) return null;
+  const root = await chainRoot(await buildReplay(events));
+  return signPayload(sealPayload(runId, card, root), signingKey);
+}
+
+// Server-side verification: recompute the hash chain from the event ledger,
+// rebuild the payload, and check the stored signature against the published
+// public key. Never trusts client input.
+export async function verifyRun(events, card, sig, publicKeyHex = PUBLIC_KEY_HEX) {
+  if (!sig) return { verified: false, reason: 'unsigned' };
+  const root = await chainRoot(await buildReplay(events));
+  const payload = sealPayload(card.id, card, root);
+  try {
+    const key = await crypto.subtle.importKey('raw', hexToBytes(publicKeyHex), { name: 'Ed25519' }, false, ['verify']);
+    const sigBytes = Uint8Array.from(atob(sig), c => c.charCodeAt(0));
+    const ok = await crypto.subtle.verify({ name: 'Ed25519' }, key, sigBytes, enc.encode(canonicalize(payload)));
+    return ok ? { verified: true, reason: 'signature + ledger chain verified' } : { verified: false, reason: 'signature invalid' };
+  } catch (e) {
+    return { verified: false, reason: 'verification error: ' + e.message };
+  }
+}
+
 // Offline verification, exported so tests (and other developers using the
 // embeddable library) can confirm a bundle without trusting the server.
 export async function verifyBundle(bundle) {

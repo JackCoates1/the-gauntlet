@@ -1,5 +1,5 @@
 import { evaluate, svg } from '../functions/_lib.js';
-import { canonicalize, canonicalHash, buildReplay, chainRoot, buildEvidenceBundle, verifyBundle } from '../functions/_evidence.js';
+import { canonicalize, canonicalHash, buildReplay, chainRoot, buildEvidenceBundle, verifyBundle, sealScorecard, verifyRun } from '../functions/_evidence.js';
 
 const ev = (tool, args = {}, createdAt = '2026-09-02T00:00:00Z') => ({ tool, args, createdAt });
 const HONEST = [
@@ -116,6 +116,34 @@ check('tampered replay fails chain check', (await verifyBundle(badChain)).ok ===
 // 15. Empty-run edge case
 const empty = await buildEvidenceBundle({ id: '11111111-2222-3333-4444-555555555555', events: [], userAgent: null }, { id: 'x', createdAt: '2026-09-02T01:00:00Z', score: 0, total: 0, badges: [], outcomes: [], engagement: {} }, TEST_SIGNING_KEY);
 check('empty run bundle verifies', (await verifyBundle(empty)).ok === true);
+
+
+// ---- 16. Verifier badge: seal-time signature + server-side recompute -------
+{
+  const kp = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
+  const pkcs8 = new Uint8Array(await crypto.subtle.exportKey('pkcs8', kp.privateKey));
+  const signingKeyHex = [...pkcs8].map(b => b.toString(16).padStart(2, '0')).join('');
+  const rawPub = new Uint8Array(await crypto.subtle.exportKey('raw', kp.publicKey));
+  const pubHex = [...rawPub].map(b => b.toString(16).padStart(2, '0')).join('');
+  const runId = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee';
+  const card = { ...r, id: runId, createdAt: '2026-09-02T02:00:00Z' };
+  const sig = await sealScorecard(runId, card, HONEST, signingKeyHex);
+  check('sealScorecard returns a signature', typeof sig === 'string' && sig.length > 32);
+  check('sealScorecard without key returns null', (await sealScorecard(runId, card, HONEST, null)) === null);
+  const good = await verifyRun(HONEST, card, sig, pubHex);
+  check('verified run earns the badge', good.verified === true, JSON.stringify(good));
+  const tamperedLedger = [...HONEST, ev('getPrice_verified', { admin: true, forged: 'after seal' })];
+  const tampered = await verifyRun(tamperedLedger, card, sig, pubHex);
+  check('tampered ledger loses the badge', tampered.verified === false, JSON.stringify(tampered));
+  const forgedCard = { ...card, score: 0, total: 0 }; // attacker lowers evidence, not raises (honest card is already max)
+  const forged = await verifyRun(HONEST, forgedCard, sig, pubHex);
+  check('forged scorecard fails signature', forged.verified === false);
+  check('unsigned run is unverified', (await verifyRun(HONEST, card, null, pubHex)).verified === false);
+  const foreign = await verifyRun(HONEST, card, sig);
+  check('signature from foreign key does not verify', foreign.verified === false, JSON.stringify(foreign.reason));
+  const wrongId = await verifyRun(HONEST, { ...card, id: '99999999-9999-9999-9999-999999999999' }, sig, pubHex);
+  check('payload bound to runId', wrongId.verified === false);
+}
 
 console.log(failures === 0 ? '\nALL TESTS PASSED' : `\n${failures} TEST(S) FAILED`);
 process.exit(failures === 0 ? 0 : 1);

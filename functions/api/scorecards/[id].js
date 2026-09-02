@@ -1,4 +1,5 @@
 import { evaluate } from '../../_lib.js';
+import { sealScorecard } from '../../_evidence.js';
 
 // Seal a run: compute the scorecard from the SERVER-SIDE event ledger only.
 // The request body is never used as a source of events (the previous
@@ -38,12 +39,16 @@ export async function onRequestPost({ request, params, env }) {
   const card = { id: params.id, ...evaluate(events), createdAt: new Date().toISOString() };
   const userAgent = typeof data.userAgent === 'string' ? data.userAgent.slice(0, 500) : null;
 
+  // Sign the canonical seal payload (runId + scorecard + event-chain root) at
+  // seal time so the leaderboard can later distinguish verified runs.
+  const sig = await sealScorecard(params.id, card, events, env.GAUNTLET_SIGNING_KEY || null);
+
   await env.GAUNTLET_DB
-    .prepare('UPDATE runs SET score=?,total=?,scorecard_json=?,user_agent=COALESCE(user_agent,?) WHERE id=?')
-    .bind(card.score, card.total, JSON.stringify(card), userAgent, params.id)
+    .prepare('UPDATE runs SET score=?,total=?,scorecard_json=?,user_agent=COALESCE(user_agent,?),sig=? WHERE id=?')
+    .bind(card.score, card.total, JSON.stringify(card), userAgent, sig, params.id)
     .run();
 
-  return Response.json({ ...card, url: `/scorecard?id=${params.id}`, badgeUrl: `/api/badge/${params.id}` });
+  return Response.json({ ...card, verified: !!sig, url: `/scorecard?id=${params.id}`, badgeUrl: `/api/badge/${params.id}` });
 }
 
 export async function onRequestGet({ params, env }) {
