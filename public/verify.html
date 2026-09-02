@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The Gauntlet client-side evidence verifier: fetch a signed evidence bundle and verify its hash chain and Ed25519 seal in your own browser, against the published public key. No server trust involved." />
+  <meta name="theme-color" content="#070a10" /><title>The Gauntlet — Verify Evidence Signature</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .doc section.epi { border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:24px; margin:18px 0; }
+    .doc h2 { color:#e8edf4; margin:0 0 8px; }
+    .doc .lede { color:#c8d3e0; }
+    .doc p { color:#aab6c6; line-height:1.6; margin:8px 0; }
+    .doc .muted { color:#8a94a6; font-size:.92em; }
+    .vform { display:flex; gap:10px; flex-wrap:wrap; margin:14px 0 6px; }
+    .vform input { flex:1 1 320px; background:#0d1220; color:#e8edf4; border:1px solid rgba(255,255,255,.14); border-radius:8px; padding:10px 12px; font-family:ui-monospace,monospace; font-size:.9rem; }
+    .vform button { cursor:pointer; border-radius:8px; padding:10px 18px; font-weight:700; letter-spacing:.06em; border:1px solid transparent; }
+    #btn-verify { background:#2a5cd6; color:#fff; border-color:#2a5cd6; }
+    #btn-tamper { background:transparent; color:#e8a44d; border-color:rgba(232,164,77,.5); }
+    .verdict { border-radius:10px; padding:18px; margin-top:14px; font-family:ui-monospace,monospace; font-size:.9rem; }
+    .verdict-ok { background:rgba(110,168,32,.08); border:1px solid rgba(110,168,32,.45); }
+    .verdict-bad { background:rgba(220,70,70,.08); border:1px solid rgba(220,70,70,.5); }
+    .verdict-headline { font-weight:800; letter-spacing:.05em; margin-bottom:10px; }
+    .verdict-ok .verdict-headline { color:#9ed44f; }
+    .verdict-bad .verdict-headline { color:#ff8484; }
+    .verdict-row { display:flex; gap:10px; padding:6px 0; color:#d7e0ec; border-top:1px dashed rgba(255,255,255,.08); }
+    .v-ok .v-mark { color:#9ed44f; font-weight:800; }
+    .v-bad .v-mark { color:#ff8484; font-weight:800; }
+    .v-hint { color:#8a94a6; font-family:ui-monospace,monospace; }
+    .pubkey { word-break:break-all; color:#9ed44f; }
+  </style>
+</head>
+<body>
+  <div class="noise"></div><main class="doc">
+    <nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/traps">TRAPS</a><a href="/docs">API DOCS</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav>
+
+    <section class="hero" style="padding:48px 0 24px">
+      <div class="eyebrow">EVIDENCE / ONE-CLICK SELF-AUDIT</div>
+      <h1>Don't trust us.<br/><em>Verify it yourself.</em></h1>
+      <p class="lede" style="max-width:640px">Every sealed scorecard carries a signed, hash-chained evidence bundle. This page downloads the bundle and checks it entirely in <b>your browser</b>: the event chain is rebuilt from scratch, the root is compared to the one the seal covers, and the Ed25519 signature is verified against the public key published in the repo. No server round-trip decides the verdict — you can do the same with the Node walkthrough in <a href="/docs">API DOCS</a>.</p>
+    </section>
+
+    <section class="epi">
+      <div class="eyebrow">RUN VERIFIER</div>
+      <h2>Verify a scorecard's evidence</h2>
+      <p class="lede">Paste a run id (the hex id in a scorecard URL, e.g. <code class="inline">/scorecards/&lt;run id&gt;</code>).</p>
+      <div class="vform">
+        <input id="runid" type="text" placeholder="run id (uuid)" spellcheck="false" autocomplete="off" />
+        <button id="btn-verify" type="button">VERIFY SIGNATURE</button>
+        <button id="btn-tamper" type="button" title="Verifies a mutated copy of the bundle — must fail red, proving the ledger is tamper-evident">TAMPER DEMO</button>
+      </div>
+      <div id="verdict"><p class="v-hint">Paste a run id and press VERIFY SIGNATURE. Or run TAMPER DEMO to see a mutated bundle rejected.</p></div>
+    </section>
+
+    <section class="epi">
+      <div class="eyebrow">WHAT THE VERIFIER CHECKS</div>
+      <h2>Four independent checks, in order</h2>
+      <p><b class="ok">1. Event chain rebuilt</b> — each replay step's hash is recomputed (canonical sorted-key JSON → SHA-256, chained from <code class="inline">genesis</code>). Any edit to any event breaks the chain.</p>
+      <p><b class="ok">2. Events root matches</b> — the final hash must equal the <code class="inline">eventsRoot</code> the seal was computed over, so the signature is provably about <i>this</i> ledger.</p>
+      <p><b class="ok">3. Ed25519 seal valid</b> — the signature is verified in WebCrypto against the published public key <span class="pubkey">17f868001b3ad45cc67a069e1115c1e8390debe4ad21add712477d91c857827a</span> (same value as <code class="inline">functions/_evidence.js</code>, cross-checked by test).</p>
+      <p><b class="ok">4. Signature covers the scorecard</b> — run id, score and total are inside the signed payload, so a displayed scorecard cannot differ from what was signed.</p>
+      <p class="muted">The public key is embedded in this page's JS (<code class="inline">/verify.js</code>); if it ever drifted from the repo-published key, test/verifypage.test.mjs fails the build.</p>
+    </section>
+  </main>
+  <script type="module" src="/verify.js"></script>
+</body>
+</html>
