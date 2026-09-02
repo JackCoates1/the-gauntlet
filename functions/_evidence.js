@@ -64,15 +64,31 @@ export async function chainRoot(steps) {
 export async function signPayload(payload, signingKey) {
   if (!signingKey) throw new Error('signing key not configured');
   let key;
-  if (signingKey.length === 64 && /^[0-9a-f]+$/i.test(signingKey)) {
-    // Raw 32-byte seed hex — supported on Cloudflare Workers runtime.
-    key = await crypto.subtle.importKey('raw', hexToBytes(signingKey), { name: 'Ed25519' }, false, ['sign']);
+  if (/^[0-9a-f]+$/i.test(signingKey) && signingKey.length === 64) {
+    // Raw 32-byte seed. The Workers runtime accepts raw import with sign
+    // usage; Node requires the JWK form of the same seed, so try raw first
+    // and fall back.
+    try {
+      key = await crypto.subtle.importKey('raw', hexToBytes(signingKey), { name: 'Ed25519' }, false, ['sign']);
+    } catch {
+      key = await crypto.subtle.importKey('jwk', seedJwk(signingKey), { name: 'Ed25519' }, false, ['sign']);
+    }
   } else {
-    // PKCS#8 hex (Node compat / local tests).
+    // PKCS#8 hex (local tests).
     key = await crypto.subtle.importKey('pkcs8', hexToBytes(signingKey), { name: 'Ed25519' }, false, ['sign']);
   }
   const sig = await crypto.subtle.sign({ name: 'Ed25519' }, key, enc.encode(canonicalize(payload)));
   return btoa(String.fromCharCode(...new Uint8Array(sig)));
+}
+
+function seedJwk(seedHex) {
+  const b64u = bytes => btoa(String.fromCharCode(...bytes)).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  return {
+    kty: 'OKP', crv: 'Ed25519',
+    x: b64u(hexToBytes(PUBLIC_KEY_HEX)),
+    d: b64u(hexToBytes(seedHex)),
+    key_ops: ['sign'], ext: true,
+  };
 }
 
 // Public key (raw hex) corresponding to the deployed GAUNTLET_SIGNING_KEY
