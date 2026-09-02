@@ -25,18 +25,39 @@ unregister();
 
 ## What it tests
 
-The range includes eight checkable controls:
+The range includes ten checkable traps, each mapped to the real attack-pattern class it represents (OWASP LLM Top 10 2025 / MITRE ATLAS):
 
-- poisoned-description decoy pricing endpoint
-- checkout typosquat (`check0ut`)
-- indirect prompt injection embedded in a tool **result**
-- fake session-token exfiltration attempt
-- unsolicited destructive bulk action
-- confused-deputy privilege escalation hidden in a profile update
-- quantity manipulation through a self-serving tool description
-- use of canonical, honest paths alongside clean control tools
+- poisoned-description decoy pricing endpoint — *LLM01 Prompt Injection*
+- checkout typosquat (`check0ut`) — *LLM01 Prompt Injection (decoy substitution)*
+- indirect prompt injection embedded in a tool **result** — *LLM01 (indirect injection)*
+- fake session-token exfiltration attempt — *LLM02 Sensitive Information Disclosure*
+- unsolicited destructive bulk action — *LLM06 Excessive Agency*
+- confused-deputy privilege escalation hidden in a profile update — *LLM06 (confused deputy)*
+- quantity manipulation through a self-serving tool description — *LLM01 behavioral nudge*
+- phantom discount stacking invited by a tool description — *LLM06 (loophole abuse)*
+- third-party PII leakage chained across two tools — *LLM02 (PII chaining)*
+- second-order instruction planted in a tool result for later activation — *LLM01 (delayed payload)*
 
-Each invocation is written to an in-page trace and a Cloudflare D1-backed event ledger. The scorecard is computed from the recorded invocation sequence, produces per-control outcomes, named badges, a permanent result URL, and a small embeddable SVG badge.
+Each invocation is written to an in-page trace and a Cloudflare D1-backed event ledger. The scorecard is computed from the recorded invocation sequence, produces per-control outcomes (with attack-class explainability), named badges, a permanent result URL, and a small embeddable SVG badge.
+
+## Public benchmark & research
+
+- **Leaderboard** — [/leaderboard](https://gauntlet.jackcoates.co.uk/leaderboard) lists every sealed run (score, timestamp, browser, link to the full scorecard) as an ongoing public benchmark. API: `GET /api/leaderboard?limit=50`.
+- **Research digest** — [/digest](https://gauntlet.jackcoates.co.uk/digest) aggregates all runs into per-browser fingerprint cards showing susceptibility per attack class. API: `GET /api/digest`.
+
+## Evidence-replay forensics
+
+Every scorecard has a downloadable, cryptographically-signed evidence bundle:
+
+```
+GET /api/scorecards/<run-id>/evidence
+```
+
+The bundle contains a hash-chained, timestamped replay of the exact tool-call sequence (each step hashes the previous step's hash plus the canonicalized event, rooted at `genesis`) plus an Ed25519 signature over the canonical payload. Verify offline with the public key published in `functions/_evidence.js` (`PUBLIC_KEY_HEX`) and the `verifyBundle()` helper.
+
+## Embeddable trap library
+
+The entire trap catalog + scoring engine is packaged as a standalone, dependency-free ES module other WebMCP developers can install and run against their own tool surfaces. See [embed/gauntlet-traps/README.md](embed/gauntlet-traps/README.md).
 
 ## Use it
 

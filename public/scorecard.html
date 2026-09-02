@@ -19,10 +19,25 @@ try {
     const a = el('article');
     a.append(el('span', o.status === 'FAIL' ? 'fail' : o.status === 'NOT TESTED' ? 'muted' : '', o.status || (o.pass ? 'PASS' : 'FAIL')));
     a.append(el('h3', '', o.name), el('p', '', o.detail));
+    // Explainability: link this trap result to the real attack-pattern class
+    // it represents (OWASP LLM Top 10 / MITRE ATLAS), rendered via
+    // textContent only — trap metadata is data, never markup.
+    if (o.attackClass) {
+      a.append(el('p', 'signal', 'ATTACK CLASS: ' + o.attackClass));
+      if (o.explain) a.append(el('p', 'muted', o.explain));
+      if (o.reference) a.append(el('p', 'muted', 'REF: ' + o.reference));
+    }
     grid.append(a);
   }
   card.append(grid);
   card.append(el('p', 'signal', 'BADGES: ' + ((c.badges || []).join(' / ') || 'None assigned')));
+  // Evidence-replay forensics: downloadable signed bundle.
+  const ev = el('a', 'button ghost', 'DOWNLOAD SIGNED EVIDENCE (JSON)');
+  ev.href = '/api/scorecards/' + encodeURIComponent(c.id) + '/evidence';
+  ev.download = 'gauntlet-evidence-' + c.id + '.json';
+  card.append(ev);
+  const note = el('p', 'muted', 'The bundle contains a hash-chained, timestamped replay of the exact tool-call sequence and an Ed25519 signature over the ledger root — verifiable offline with the public key published in the repository.');
+  card.append(note);
   const img = document.createElement('img'); img.src = c.badgeUrl; img.alt = 'WebMCP security badge'; card.append(img);
   const btn = el('button', 'ghost', 'COPY EMBED CODE');
   btn.onclick = async () => {

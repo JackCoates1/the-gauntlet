@@ -1,6 +1,7 @@
 import { evaluate, svg } from '../functions/_lib.js';
+import { canonicalize, canonicalHash, buildReplay, chainRoot, buildEvidenceBundle, verifyBundle } from '../functions/_evidence.js';
 
-const ev = (tool, args = {}) => ({ tool, args, createdAt: '2026-09-02T00:00:00Z' });
+const ev = (tool, args = {}, createdAt = '2026-09-02T00:00:00Z') => ({ tool, args, createdAt });
 const HONEST = [
   ev('sessionStarted'),
   ev('searchProducts', { query: 'signal node' }),
@@ -12,6 +13,7 @@ const HONEST = [
   ev('updateDisplayName', { displayName: 'Jack' }),
   ev('exportSessionBackup', {}),
 ];
+const TEST_SIGNING_KEY = '302e020100300506032b657004220420bae71f4303776d802121f641a07f855c25e701a9f8717ac124a2bf60e15623a0';
 let failures = 0;
 function check(name, cond, extra = '') {
   if (!cond) { failures++; console.log('FAIL:', name, extra); } else console.log('ok:', name);
@@ -76,6 +78,44 @@ check('svg escapes injected score', !out.includes('</text><script>') && out.incl
 check('evaluate tolerates null', evaluate(null).tested === false);
 check('evaluate tolerates garbage', evaluate([null, 'x', { tool: 'sessionStarted' }, 42]).tested === false);
 check('evaluate tolerates nested garbage', evaluate([{ tool: 'sessionStarted' }, { tool: 'searchProducts' }, { tool: 'getPrice' }, { tool: 'checkout' }, ['bad'], 5]).tested === true);
+
+// ---- 11. Explainability: attack-class metadata on every outcome ------------
+r = evaluate(HONEST);
+check('every outcome carries an attack class', r.outcomes.every(o => typeof o.attackClass === 'string' && o.attackClass.startsWith('LLM')), JSON.stringify(r.outcomes.map(o => o.attackClass)));
+check('every outcome carries a reference', r.outcomes.every(o => typeof o.reference === 'string' && o.reference.length > 10));
+check('every outcome carries an explanation', r.outcomes.every(o => typeof o.explain === 'string' && o.explain.length > 30));
+const classes = new Set(r.outcomes.map(o => o.attackClass));
+check('attack classes map to multiple distinct patterns', classes.size >= 3, [...classes].join(', '));
+
+// ---- 12. Canonicalization + hashing determinism -----------------------------
+check('canonicalize sorts keys', canonicalize({ b: 1, a: 2 }) === '{"a":2,"b":1}');
+check('canonicalize collapses whitespace', canonicalize({ a: [1, 'x y'] }) === '{"a":[1,"x y"]}');
+check('canonicalHash is deterministic', (await canonicalHash({ x: 1 })) === (await canonicalHash({ x: 1 })));
+check('canonicalHash differs on change', (await canonicalHash({ x: 1 })) !== (await canonicalHash({ x: 2 })));
+
+// ---- 13. Evidence replay: hash chain ---------------------------------------
+const steps = await buildReplay(HONEST);
+check('replay has one step per event', steps.length === HONEST.length);
+check('replay seq is 1-based and ordered', steps.every((s, i) => s.seq === i + 1));
+check('first step chains from genesis', steps[0].prevHash === 'genesis');
+check('each step chains to the previous', steps.every((s, i) => i === 0 || s.prevHash === steps[i - 1].hash));
+check('chain root equals last hash', (await chainRoot(steps)) === steps[steps.length - 1].hash);
+const tampered = await buildReplay([...HONEST.slice(0, 3), { ...HONEST[3], args: { tampered: true } }, ...HONEST.slice(4)]);
+check('tampered ledger produces different hashes', tampered[4].hash !== steps[4].hash);
+
+// ---- 14. Signed evidence bundle: sign + verify + tamper detection ----------
+const bundle = await buildEvidenceBundle({ id: '11111111-2222-3333-4444-555555555555', events: HONEST, userAgent: 'test-agent' }, { ...r, id: '11111111-2222-3333-4444-555555555555', createdAt: '2026-09-02T01:00:00Z' }, TEST_SIGNING_KEY);
+check('bundle has signature', typeof bundle.signature === 'string' && bundle.signature.length > 32);
+check('bundle eventsRoot matches chain', bundle.eventsRoot === (await chainRoot(steps)));
+check('bundle verifies cleanly', (await verifyBundle(bundle)).ok === true, JSON.stringify(await verifyBundle(bundle)));
+const badBundle = { ...bundle, score: 0 };
+check('tampered payload fails signature', (await verifyBundle(badBundle)).ok === false);
+const badChain = { ...bundle, replay: bundle.replay.map((s, i) => i === 2 ? { ...s, tool: 'check0ut' } : s) };
+check('tampered replay fails chain check', (await verifyBundle(badChain)).ok === false, JSON.stringify((await verifyBundle(badChain)).reason));
+
+// 15. Empty-run edge case
+const empty = await buildEvidenceBundle({ id: '11111111-2222-3333-4444-555555555555', events: [], userAgent: null }, { id: 'x', createdAt: '2026-09-02T01:00:00Z', score: 0, total: 0, badges: [], outcomes: [], engagement: {} }, TEST_SIGNING_KEY);
+check('empty run bundle verifies', (await verifyBundle(empty)).ok === true);
 
 console.log(failures === 0 ? '\nALL TESTS PASSED' : `\n${failures} TEST(S) FAILED`);
 process.exit(failures === 0 ? 0 : 1);
