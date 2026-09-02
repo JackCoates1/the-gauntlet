@@ -1,1 +1,37 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gauntlet Scorecard</title><link rel="stylesheet" href="/styles.css"></head><body><main><nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><span class="pill"><b></b> VERIFIED RUN</span></nav><section class="hero" id="card"><div class="eyebrow">SECURITY SCORECARD</div><h1>Loading<br/><em>evidence…</em></h1></section><footer><span>THE GAUNTLET / PUBLIC SECURITY RANGE</span></footer></main><script type="module">const id=new URLSearchParams(location.search).get('id');const c=await fetch('/api/scorecards/'+id).then(r=>r.json());document.querySelector('#card').innerHTML=`<div class="eyebrow">SECURITY SCORECARD / ${c.id}</div><h1>${c.score}<em>/${c.total}</em></h1><p class="lede">${c.score===c.total?'Clean run. The agent preserved user intent across the range.':'Run completed with findings requiring review.'}</p><div class="grid">${c.outcomes.map(o=>`<article><span>${o.pass?'PASS':'FAIL'}</span><h3>${o.name}</h3><p>${o.detail}</p></article>`).join('')}</div><p class="signal">BADGES: ${c.badges.join(' / ')||'None assigned'}</p><p><img src="${c.badgeUrl}" alt="WebMCP security badge"></p><button class="ghost" id="copy">COPY EMBED CODE</button>`;document.querySelector('#copy').onclick=async()=>{await navigator.clipboard.writeText(`<img src="${location.origin}${c.badgeUrl}" alt="WebMCP Security: ${c.score}/${c.total} — The Gauntlet">`);document.querySelector('#copy').textContent='COPIED'};</script></body></html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gauntlet Scorecard</title><link rel="stylesheet" href="/styles.css"></head><body><main><nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><span class="pill"><b></b> VERIFIED RUN</span></nav><section class="hero" id="card"><div class="eyebrow">SECURITY SCORECARD</div><h1>Loading<br/><em>evidence…</em></h1></section><footer><span>THE GAUNTLET / PUBLIC SECURITY RANGE</span></footer></main><script type="module">
+// All scorecard fields (id, trap names, details, badges) are rendered via
+// textContent / element assignment — never template-string innerHTML — so a
+// hostile run id or any stored field cannot execute script in this page.
+const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
+const id = new URLSearchParams(location.search).get('id');
+const card = document.querySelector('#card');
+try {
+  if (!/^[0-9a-f-]{36}$/i.test(id || '')) throw new Error('Invalid run id');
+  const c = await fetch('/api/scorecards/' + encodeURIComponent(id)).then(r => { if (!r.ok) throw new Error('Run not found'); return r.json(); });
+  card.textContent = '';
+  card.append(el('div', 'eyebrow', 'SECURITY SCORECARD / ' + c.id));
+  const h1 = el('h1'); h1.append(el('span', '', String(c.score)), el('em', '', '/' + c.total)); card.append(h1);
+  card.append(el('p', 'lede', c.score === c.total && c.total > 0
+    ? 'Clean run. The agent preserved user intent across every trap it was exposed to.'
+    : (c.total === 0 ? 'Run not scored: ' + (c.outcomes?.[0]?.detail || 'insufficient engagement.') : 'Run completed with findings requiring review.')));
+  const grid = el('div', 'grid');
+  for (const o of (c.outcomes || [])) {
+    const a = el('article');
+    a.append(el('span', o.status === 'FAIL' ? 'fail' : o.status === 'NOT TESTED' ? 'muted' : '', o.status || (o.pass ? 'PASS' : 'FAIL')));
+    a.append(el('h3', '', o.name), el('p', '', o.detail));
+    grid.append(a);
+  }
+  card.append(grid);
+  card.append(el('p', 'signal', 'BADGES: ' + ((c.badges || []).join(' / ') || 'None assigned')));
+  const img = document.createElement('img'); img.src = c.badgeUrl; img.alt = 'WebMCP security badge'; card.append(img);
+  const btn = el('button', 'ghost', 'COPY EMBED CODE');
+  btn.onclick = async () => {
+    await navigator.clipboard.writeText('<img src="' + location.origin + c.badgeUrl + '" alt="WebMCP Security: ' + c.score + '/' + c.total + ' — The Gauntlet">');
+    btn.textContent = 'COPIED'; setTimeout(() => { btn.textContent = 'COPY EMBED CODE'; }, 1200);
+  };
+  card.append(btn);
+} catch (e) {
+  card.textContent = '';
+  card.append(el('div', 'eyebrow', 'SECURITY SCORECARD'), el('h1', '', ''), el('p', 'lede', e.message || 'Scorecard unavailable.'));
+}
+</script></body></html>

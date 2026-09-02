@@ -1,2 +1,0 @@
-import { svg } from '../../_lib.js';
-export async function onRequestGet({params,env}) { const row=await env.GAUNTLET_DB.prepare('SELECT scorecard_json FROM runs WHERE id=?').bind(params.id).first(); if(!row?.scorecard_json)return new Response('Not found',{status:404}); return new Response(svg(JSON.parse(row.scorecard_json)),{headers:{'content-type':'image/svg+xml','cache-control':'public, max-age=3600'}}); }
