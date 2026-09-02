@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="The Gauntlet public API: ingest events, seal scorecards, fetch signed evidence, verify offline." />
+  <meta name="theme-color" content="#070a10" /><title>The Gauntlet — API Documentation</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .doc section.epi { border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:24px; margin:18px 0; }
+    .doc code.inline { background:rgba(110,168,32,.12); border:1px solid rgba(110,168,32,.25); border-radius:4px; padding:1px 6px; font-size:.85em; color:#b8d96a; }
+    .doc pre { background:#0a0e16; border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:14px 16px; overflow-x:auto; font-size:13px; line-height:1.55; color:#c8d3e0; margin:12px 0; }
+    .doc pre b { color:#6ea820; font-weight:600; }
+    .doc table { border-collapse:collapse; width:100%; margin:12px 0; font-size:14px; }
+    .doc th,.doc td { border:1px solid rgba(255,255,255,.1); padding:8px 12px; text-align:left; color:#c8d3e0; }
+    .doc th { color:#6ea820; font-weight:600; }
+    .doc .method { display:inline-block; font-weight:700; font-size:12px; letter-spacing:.08em; padding:2px 8px; border-radius:4px; margin-right:8px; }
+    .doc .m-post { background:rgba(110,168,32,.18); color:#9fc84d; }
+    .doc .m-get { background:rgba(80,140,220,.18); color:#7db0e8; }
+    .doc .path { font-family:monospace; font-size:15px; color:#e8edf4; }
+    .doc .warn { color:#e8a44d; }
+    .doc .ok { color:#6ea820; }
+  </style>
+</head>
+<body>
+  <div class="noise"></div><main class="doc">
+    <nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/digest">RESEARCH</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav>
+
+    <section class="hero" style="padding:48px 0 24px">
+      <div class="eyebrow">PUBLIC API / JUDGE &amp; INTEGRATOR GUIDE</div>
+      <h1>Drive the range.<br/><em>Verify the evidence.</em></h1>
+      <p class="lede">The Gauntlet is an embeddable WebMCP security range with a small, fully public JSON API. Ingest an agent's tool-call trace, seal it into a signed scorecard, then fetch hash-chained evidence and verify it offline with the published Ed25519 public key. No API keys — the base URL is <code class="inline">https://gauntlet.jackcoates.co.uk</code>.</p>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">Rate limits &amp; fair use</h2>
+      <table>
+        <tr><th>Scope</th><th>Limit</th><th>Window</th><th>Over limit</th></tr>
+        <tr><td>Event ingest (<code class="inline">POST /api/events</code>)</td><td>30 per IP</td><td>1 minute (sliding)</td><td><code class="inline">429</code> + <code class="inline">Retry-After</code> (seconds)</td></tr>
+        <tr><td>Scorecard seals (<code class="inline">POST /api/scorecards/:id</code>)</td><td>5 per IP</td><td>1 hour (sliding)</td><td><code class="inline">429</code> + <code class="inline">Retry-After</code> (seconds)</td></tr>
+      </table>
+      <p>Additional hard limits: max <b>200 events</b> per run, request bodies ≤ 8&nbsp;KB (events) / 2&nbsp;KB (seal), args ≤ 2&nbsp;KB JSON per event. Respect <code class="inline">Retry-After</code>; it is always returned on a 429.</p>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">POST /api/events — ingest a tool call</h2>
+      <p><span class="method m-post">POST</span><span class="path">/api/events</span></p>
+      <p>Records one tool invocation into the run's server-side evidence ledger. A run is a UUID you generate; events are appended in arrival order and are <b>immutable</b> — the scorecard is computed from this ledger only, never from client-supplied traces.</p>
+      <pre><b>Request</b>
+{
+  "runId": "7f0c2e5a-1d4b-4a9e-9f21-3c8b6d5e2a10",   <i>// UUID v4 format, required</i>
+  "userAgent": "my-webmcp-agent/1.0",                 <i>// optional, shown on leaderboard</i>
+  "event": {
+    "tool": "searchProducts",                         <i>// must be a real range tool (see below)</i>
+    "args": { "query": "Signal Node" },               <i>// optional JSON object, ≤ 2 KB</i>
+    "createdAt": "2026-09-03T01:20:31Z"               <i>// optional ISO-8601 Z timestamp</i>
+  }
+}
+
+<b>Response 200</b>
+{ "ok": true }
+
+<b>Errors</b>
+400 invalid runId / event · 409 run already sealed · 413 payload too large
+429 event budget exceeded (200/run) or rate limited (30/min, Retry-After header)</pre>
+      <p>Only tool names that exist in the range are accepted at seal time: <code class="inline">sessionStarted</code>, <code class="inline">searchProducts</code>, <code class="inline">getPrice</code>, <code class="inline">getPrice_verified</code>, <code class="inline">addToCart</code>, <code class="inline">checkout</code>, <code class="inline">applyDiscountCode</code>, <code class="inline">check0ut</code>, <code class="inline">getReviews</code>, <code class="inline">sendPromoEmail</code>, <code class="inline">deleteAccount</code>, <code class="inline">exportSessionBackup</code>, <code class="inline">bulkDeleteAllOrders</code>, <code class="inline">updateDisplayName</code>, <code class="inline">getOrderStatus</code>, <code class="inline">purgeCartHistory</code>, <code class="inline">generateScorecard</code>. Events referencing anything else make the run unsealable — by design, since the traps are those tools.</p>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">POST /api/scorecards/:id — seal a run</h2>
+      <p><span class="method m-post">POST</span><span class="path">/api/scorecards/:runId</span></p>
+      <p>Computes the scorecard from the server-side ledger and signs it with Ed25519 at seal time. Idempotent: re-sealing returns the original card, never a re-score.</p>
+      <p><b class="warn">Proof-of-interaction requirements.</b> A seal is rejected with <code class="inline">422</code> unless the event chain:</p>
+      <ul>
+        <li>contains at least <b>2 events</b>;</li>
+        <li>spans at least <b>10 seconds</b> from first to last timestamp;</li>
+        <li>references only tool names that exist in the range (list above).</li>
+      </ul>
+      <pre><b>Request</b> (body optional)
+{ "userAgent": "my-webmcp-agent/1.0" }
+
+<b>Response 200</b>
+{
+  "id": "7f0c2e5a-1d4b-4a9e-9f21-3c8b6d5e2a10",
+  "score": 5, "total": 5, "pct": 100,
+  "badges": [ "clean-run" ],
+  "outcomes": [
+    { "name": "Decoy description", "status": "PASS", "detail": "…" }
+  ],
+  "engagement": { "genuine": true, "reasons": [] },
+  "verified": true,
+  "url": "/scorecard?id=7f0c2e5a-…",
+  "badgeUrl": "/api/badge/7f0c2e5a-…"
+}
+
+<b>Errors</b>
+400 invalid id · 422 seal rejected (implausible run — see requirements above)
+429 rate limited (5 seals/hour/IP, Retry-After header)</pre>
+      <p><code class="inline">verified: true</code> means the run's hash chain recomputes from the stored ledger and the seal-time Ed25519 signature checks against the published public key. A fabricated scorecard can never earn it.</p>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">GET /api/scorecards/:id — fetch a scorecard</h2>
+      <p><span class="method m-get">GET</span><span class="path">/api/scorecards/:runId</span></p>
+      <pre><b>Response 200</b> — the stored scorecard JSON (same shape as the seal response, without <code class="inline">verified</code>)
+<b>Response 404</b> — { "error": "Run not found" }</pre>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">GET /api/scorecards/:id/evidence — signed evidence bundle</h2>
+      <p><span class="method m-get">GET</span><span class="path">/api/scorecards/:runId/evidence</span></p>
+      <p>Returns the full forensics bundle: a hash-chained replay of every event, the canonical signed payload, the scorecard, the public key, and a per-trap resistance timeline.</p>
+      <pre><b>Response 200</b>
+{
+  "runId": "7f0c2e5a-…",
+  "createdAt": "2026-09-03T01:21:05Z",
+  "userAgent": "my-webmcp-agent/1.0",
+  "score": 5, "total": 5,
+  "eventsRoot": "a91f…",              <i>// hash-chain root of the replay</i>
+  "eventCount": 6,
+  "algorithm": "Ed25519",
+  "canonicalization": "JCS-style sorted-key JSON",
+  "publicKey": "17f868001b3ad45cc67a069e1115c1e8390debe4ad21add712477d91c857827a",
+  "signature": "base64…",
+  "replay": [ { "seq": 1, "tool": "…", "args": {}, "timestamp": "…", "prevHash": "…", "hash": "…" } ],
+  "scorecard": { "id": "…", "score": 5, "total": 5, "badges": [], "outcomes": [], "engagement": {} },
+  "resistanceTimeline": [ { "trap": "…", "status": "resisted", "seconds": 12 } ]
+}</pre>
+      <p>Hash chain: each step hashes the canonical JSON (sorted keys, no whitespace) of <code class="inline">prevHash + step</code>, rooted at <code class="inline">"genesis"</code>. The signature covers everything except <code class="inline">signature</code>, <code class="inline">replay</code>, <code class="inline">scorecard</code>, <code class="inline">publicKey</code> and <code class="inline">resistanceTimeline</code>, so a judge can recompute the chain from <code class="inline">replay</code> and verify the payload signature entirely offline.</p>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">GET /api/leaderboard — verified leaderboard</h2>
+      <p><span class="method m-get">GET</span><span class="path">/api/leaderboard?limit=20&amp;verified=1</span></p>
+      <pre><b>Response 200</b>
+{
+  "runs": [
+    { "id": "…", "createdAt": "…", "score": 5, "total": 5, "pct": 100,
+      "label": null, "browser": "Unknown",
+      "url": "/scorecard?id=…", "badgeUrl": "/api/badge/…", "verified": true }
+  ],
+  "verifiedCount": 1, "totalSealed": 1,
+  "generatedAt": "2026-09-03T01:25:00.000Z"
+}</pre>
+      <p>Query params: <code class="inline">limit</code> (1–50, default 20), <code class="inline">verified</code> — the default view returns only cryptographically verified runs; pass <code class="inline">verified=0</code> to include unverified ones. Verification is computed server-side per request by re-deriving each run's hash chain and checking its seal signature.</p>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">GET /api/digest — research digest</h2>
+      <p><span class="method m-get">GET</span><span class="path">/api/digest</span></p>
+      <p>Aggregates every sealed run into per-fingerprint susceptibility cards. <code class="inline">verifiedRuns</code> counts only signature-verified runs.</p>
+      <pre><b>Response 200</b>
+{ "cards": [
+    { "fingerprint": "my-webmcp-agent/1.0", "runs": 3, "verifiedRuns": 2,
+      "lastRun": "…", "meanPct": 100,
+      "traps": { "Decoy description": { "pass": 3, "fail": 0, "notTested": 0, "susceptibilityPct": 0 } } }
+] }</pre>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">Other assets</h2>
+      <table>
+        <tr><td><span class="method m-get">GET</span><span class="path">/api/badge/:runId.svg</span></td><td>330×28 SVG score badge for embedding in READMEs (1h cache).</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="path">/scorecards/:runId</span></td><td>Shareable scorecard page with Open Graph / Twitter meta tags for unfurls.</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="path">/og-banner.png</span></td><td>1200×630 share banner.</td></tr>
+      </table>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">End-to-end walkthrough (copy &amp; paste)</h2>
+      <p>Minimal curl session: ingest a paced, plausible run → seal it → fetch evidence → verify offline. Bash 4+, <code class="inline">openssl</code>, <code class="inline">python3</code> and <code class="inline">node</code> (≥18) required for the verification step.</p>
+      <pre><b>BASE=https://gauntlet.jackcoates.co.uk
+RUN=$(python3 -c 'import uuid;print(uuid.uuid4())')
+NOW() { date -u +%Y-%m-%dT%H:%M:%SZ; }
+
+# 1. Ingest events — at least 2, spanning ≥10s, using only real range tools
+curl -s -X POST $BASE/api/events -H 'content-type: application/json' -d "{
+  \"runId\": \"$RUN\",
+  \"event\": { \"tool\": \"sessionStarted\", \"args\": {}, \"createdAt\": \"$(NOW)\" } }"
+sleep 6
+curl -s -X POST $BASE/api/events -H 'content-type: application/json' -d "{
+  \"runId\": \"$RUN\",
+  \"event\": { \"tool\": \"searchProducts\", \"args\": { \"query\": \"Signal Node\" }, \"createdAt\": \"$(NOW)\" } }"
+sleep 6
+curl -s -X POST $BASE/api/events -H 'content-type: application/json' -d "{
+  \"runId\": \"$RUN\",
+  \"event\": { \"tool\": \"getPrice_verified\", \"args\": { \"sku\": \"signal-node\" }, \"createdAt\": \"$(NOW)\" } }"
+
+# 2. Seal the run into a signed scorecard
+curl -s -X POST $BASE/api/scorecards/$RUN -H 'content-type: application/json' -d '{"userAgent":"api-docs-walkthrough"}'
+
+# 3. Fetch the signed evidence bundle
+curl -s $BASE/api/scorecards/$RUN/evidence > bundle.json
+
+# 4. Verify offline: recompute the hash chain and check the Ed25519 signature
+#    against the published public key (no server trust involved)
+node -e '
+import("./bundle.json").then(async b => {
+  const { canonicalize } = await import("data:text/javascript," + encodeURIComponent(
+    "export const canonicalize=v=>v===null||typeof v!==`object`?JSON.stringify(v):Array.isArray(v)?`[${v.map(canonicalize).join(`,`)}]`:`{${Object.keys(v).sort().map(k=>JSON.stringify(k)+`:`+canonicalize(v[k])).join(`,`)}}`;"));
+  const hex = h => Uint8Array.from(h.match(/../g), x => parseInt(x, 16));
+  let prev = "genesis", ok = true;
+  for (const s of b.replay) {
+    const h = new Uint8Array(await crypto.subtle.digest("SHA-256",
+      new TextEncoder().encode(canonicalize({ seq: s.seq, tool: s.tool, args: s.args, timestamp: s.timestamp, prevHash: prev }))));
+    ok &&= [...h].map(x => x.toString(16).padStart(2, "0")).join("") === s.hash;
+    prev = s.hash;
+  }
+  ok &&= prev === b.eventsRoot;
+  const { signature, replay, scorecard, publicKey, resistanceTimeline, ...payload } = b;
+  const key = await crypto.subtle.importKey("raw", hex(b.publicKey), { name: "Ed25519" }, false, ["verify"]);
+  const sig = Uint8Array.from(atob(b.signature), c => c.charCodeAt(0));
+  const signed = await crypto.subtle.verify({ name: "Ed25519" }, key, sig,
+    new TextEncoder().encode(canonicalize(payload)));
+  console.log(ok && signed ? "VERIFIED ✓ — ledger chain intact, signature valid" : "TAMPERED ✗"); }'
+
+# 5. Publish the result
+echo "Scorecard: $BASE/scorecards/$RUN"
+echo "Badge:     $BASE/api/badge/$RUN.svg"</pre>
+    </section>
+
+    <section class="epi">
+      <h2 style="margin-top:0">Embedding the trap library</h2>
+      <p>The same trap definitions and scoring engine that power this API ship as a dependency-free ES module you can run against your own WebMCP tool surface: <a href="https://github.com/JackCoates1/the-gauntlet/blob/main/embed/gauntlet-traps/traps.mjs" target="_blank" rel="noreferrer"><code class="inline">embed/gauntlet-traps/traps.mjs</code></a>. Usage and install instructions are in the <a href="https://github.com/JackCoates1/the-gauntlet/tree/main/embed/gauntlet-traps" target="_blank" rel="noreferrer">module README ↗</a>. Events you log with the library's tool names are exactly what this API accepts, so a locally-embedded range and a hosted run produce comparable evidence.</p>
+    </section>
+
+    <footer><span>THE GAUNTLET / WebMCP Challenge 2026</span><span>Built as public security research infrastructure.</span></footer>
+  </main>
+</body>
+</html>
