@@ -1,4 +1,4 @@
-import { buildEvidenceBundle } from '../../../_evidence.js';
+import { buildEvidenceBundle, buildResistanceTimeline } from '../../../_evidence.js';
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -25,6 +25,9 @@ export async function onRequestGet({ params, env }) {
 
   const signingKey = env.GAUNTLET_SIGNING_KEY || null;
   const bundle = await buildEvidenceBundle({ id: params.id, events, userAgent: row.user_agent }, card, signingKey);
+  // Resistance timeline: per-trap exposure→outcome durations for the
+  // scorecard page strip. Derived from the same ledger; additive field.
+  bundle.resistanceTimeline = buildResistanceTimeline(events, card.outcomes);
   return new Response(JSON.stringify(bundle, null, 2), {
     headers: {
       'content-type': 'application/json',

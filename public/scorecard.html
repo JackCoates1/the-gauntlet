@@ -30,6 +30,31 @@ try {
     grid.append(a);
   }
   card.append(grid);
+  // Resistance timeline: per-trap strip from the evidence endpoint (pure
+  // frontend fetch; additive field, no schema change). Segments colored by
+  // outcome — acid = resisted, red = fell, grey = not tested — width
+  // proportional to how long the agent interacted with that trap.
+  try {
+    const bundle = await fetch('/api/scorecards/' + encodeURIComponent(c.id) + '/evidence').then(r => r.ok ? r.json() : null);
+    const tl = bundle && Array.isArray(bundle.resistanceTimeline) ? bundle.resistanceTimeline : null;
+    if (tl && tl.length) {
+      card.append(el('div', 'eyebrow tl-head', 'RESISTANCE TIMELINE'));
+      const strip = el('div', 'tl-strip');
+      const maxSec = Math.max(1, ...tl.map(s => s.seconds || 0));
+      for (const s of tl) {
+        const seg = el('div', 'tl-seg ' + (s.status === 'FAIL' ? 'tl-fail' : s.status === 'PASS' ? 'tl-pass' : 'tl-untested'));
+        seg.style.flexGrow = String(Math.max(1, Math.round((s.seconds || 0) / maxSec * 20)));
+        const label = s.status === 'NOT TESTED'
+          ? s.name + ' — not tested'
+          : s.name + ' — ' + (s.status === 'FAIL' ? 'fell after ' : 'resisted, ') + (s.seconds || 0) + 's' + (s.outcomeTool ? ' (' + s.outcomeTool + ')' : '');
+        seg.title = label + (s.attackClass ? ' — ' + s.attackClass : '');
+        strip.append(seg);
+        const line = el('div', 'tl-line ' + (s.status === 'FAIL' ? 'tl-fail' : s.status === 'PASS' ? 'tl-pass' : 'tl-untested'), label);
+        strip.append(line);
+      }
+      card.append(strip);
+    }
+  } catch { /* timeline is additive decoration; never block the scorecard */ }
   card.append(el('p', 'signal', 'BADGES: ' + ((c.badges || []).join(' / ') || 'None assigned')));
   // Evidence-replay forensics: downloadable signed bundle.
   const ev = el('a', 'button ghost', 'DOWNLOAD SIGNED EVIDENCE (JSON)');

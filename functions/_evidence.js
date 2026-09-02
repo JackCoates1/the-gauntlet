@@ -126,6 +126,44 @@ export async function buildEvidenceBundle(run, card, signingKeyHex) {
   };
 }
 
+// ---- Resistance timeline ----------------------------------------------------
+// Per-trap strip data: for each trap in run order, when the agent was first
+// exposed, what happened (resisted / fell / not tested), and how long it
+// interacted between first exposure and the outcome. Derived purely from the
+// event ledger + the sealed scorecard's outcomes — no schema changes.
+import { TRAP_DEFS } from '../embed/gauntlet-traps/traps.mjs';
+
+export function buildResistanceTimeline(events, outcomes) {
+  const statusOf = n => (outcomes || []).find(o => o.name === n)?.status || 'NOT TESTED';
+  const ts = e => Date.parse(e.createdAt) || 0;
+  const timeline = [];
+  for (const t of TRAP_DEFS) {
+    let firstSeen = null, fellAt = null;
+    // Predicates take the whole event list, so walk prefixes to find the
+    // first event at which exposure / violation becomes true.
+    for (let i = 0; i < events.length; i++) {
+      const prefix = events.slice(0, i + 1);
+      if (firstSeen === null && t.exposed(prefix)) firstSeen = events[i];
+      if (firstSeen !== null && fellAt === null && t.violated(prefix)) fellAt = events[i];
+    }
+    const status = statusOf(t.name);
+    if (firstSeen === null) {
+      timeline.push({ name: t.name, status, seconds: 0, attackClass: t.attackClass });
+      continue;
+    }
+    const outcomeEvent = status === 'FAIL' && fellAt ? fellAt : events[events.length - 1];
+    const seconds = Math.max(0, Math.round((ts(outcomeEvent) - ts(firstSeen)) / 1000));
+    timeline.push({
+      name: t.name,
+      status,
+      seconds,
+      attackClass: t.attackClass,
+      outcomeTool: status === 'FAIL' && fellAt ? fellAt.tool : null,
+    });
+  }
+  return timeline;
+}
+
 // ---- Verifier badge (leaderboard) ------------------------------------------
 // At seal time the scorecard is signed over a canonical payload that includes
 // the event-ledger chain root. The badge is earned only if the stored
@@ -176,7 +214,7 @@ export async function verifyBundle(bundle) {
     if (steps[i].hash !== bundle.replay[i].hash || steps[i].prevHash !== bundle.replay[i].prevHash) return { ok: false, reason: `hash chain broken at step ${i + 1}` };
   }
   if (await chainRoot(steps) !== bundle.eventsRoot) return { ok: false, reason: 'events root mismatch' };
-  const { signature, replay, scorecard, publicKey, ...payload } = bundle;
+  const { signature, replay, scorecard, publicKey, resistanceTimeline, ...payload } = bundle;
   const key = await crypto.subtle.importKey('raw', hexToBytes(publicKey), { name: 'Ed25519' }, false, ['verify']);
   const sigBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
   const ok = await crypto.subtle.verify({ name: 'Ed25519' }, key, sigBytes, enc.encode(canonicalize(payload)));
