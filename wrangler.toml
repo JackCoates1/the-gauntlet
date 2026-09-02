@@ -1,0 +1,8 @@
+name = "the-gauntlet"
+compatibility_date = "2026-09-02"
+pages_build_output_dir = "./public"
+
+[[d1_databases]]
+binding = "GAUNTLET_DB"
+database_name = "the-gauntlet"
+database_id = "REPLACE_WITH_D1_DATABASE_ID"
