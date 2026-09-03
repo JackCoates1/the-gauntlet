@@ -2,7 +2,7 @@
 // disables Pages' SPA fallback; this Function makes the HTTP contract explicit
 // and keeps API and static-asset requests out of the HTML error surface.
 
-const ASSET_PATH = /\/(?:[^/]+\.(?:css|js|mjs|json|xml|txt|png|svg|ico|webmanifest)|_headers|_redirects)$/i;
+const ASSET_PATH = /\/(?:[^/]+\.(?:css|js|mjs|json|xml|txt|png|svg|ico|woff2?|webmanifest)|_headers|_redirects)$/i;
 const STATIC_PAGES = new Set(['/', '/compare', '/connect', '/demo', '/digest', '/docs', '/leaderboard', '/scorecard', '/traps', '/verify']);
 
 export function isPassthroughPath(pathname) {

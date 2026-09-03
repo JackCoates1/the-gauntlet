@@ -240,5 +240,90 @@ nav a,.pill{white-space:nowrap}
    display value on desktop nav anchors. */
 @media(max-width:700px){nav>a:not(.brand){display:none}}
 @media(max-width:700px){.judge-callout{grid-template-columns:1fr;gap:20px;padding:22px}.criteria-map{grid-template-columns:1fr}}
+/* ---- Sitewide visual-cohesion pass: hierarchy, density rhythm, doc
+   accents, hero live stats. Presentation only — no data or logic changes. ---- */
+
+/* 1. Divider treatment for closely-related catalog items: /traps's 17 trap
+   cards and /docs + /connect endpoint blocks stop being a wall of identical
+   bordered boxes. Heavy card chrome recedes; a subtle acid left-border marks
+   each block's start; deep-link targets keep a visible focus state. */
+body .doc section.epi{
+  border:1px solid var(--line);
+  border-left:2px solid #33431f;
+  border-radius:0;
+  box-shadow:none;
+}
+body .doc section.epi:hover{border-left-color:var(--acid)}
+body .doc section.epi:target{
+  border-color:var(--acid);
+  border-left-color:var(--acid);
+  box-shadow:0 0 0 1px var(--acid);
+}
+/* Endpoint headings read like API reference entries: mono, spaced, with the
+   path visually dominant over the surrounding prose. */
+.doc h2.section-title{
+  font:700 clamp(20px,3vw,27px)/1.2 'DM Mono',monospace;
+  letter-spacing:-.02em;
+}
+.doc .epi > .method{font-size:11px;padding:3px 9px}
+.doc .epi > .path{font:600 15px 'DM Mono',monospace;color:var(--acid)}
+
+/* Reference tables: documentation, not a data export. Kill the grid of
+   full borders; keep horizontal rules only. */
+.doc table{font-size:13px}
+.doc th,.doc td{border:0;border-bottom:1px solid var(--line);padding:9px 12px 9px 0}
+.doc tr:last-child td{border-bottom:1px solid var(--line)}
+.doc th{border-bottom:1px solid #33431f;font:10px 'DM Mono';letter-spacing:.1em;text-transform:uppercase}
+
+/* 2. Hero live-stat strip: fills dead hero space with one restrained,
+   data-backed element (populated by hero-stat.js when the API answers). */
+.hero-stat-strip{
+  display:flex;flex-wrap:wrap;gap:0 42px;margin-top:44px;padding-top:20px;
+  border-top:1px solid var(--line);
+}
+.hero-stat{display:flex;align-items:baseline;gap:9px}
+.hero-stat b{
+  color:var(--ink);font:700 30px/1 Manrope;letter-spacing:-.05em;
+  font-variant-numeric:tabular-nums;
+}
+.hero-stat span{font:10px 'DM Mono';letter-spacing:.11em;color:var(--muted)}
+@media(max-width:700px){
+  .hero-stat-strip{gap:10px 26px;margin-top:30px;padding-top:16px}
+  .hero-stat b{font-size:23px}
+}
+
+/* 3. Community histogram: air, legibility, modal-bucket emphasis. */
+.community-distribution{padding:34px 36px 30px}
+.community-distribution svg{max-width:820px}
+.community-distribution svg text{font-family:'DM Mono',monospace}
+.histogram-note{margin:14px 0 0;color:var(--muted);font:10px/1.5 'DM Mono';letter-spacing:.06em}
+.histogram-note b{color:var(--acid);font-weight:400}
+.histogram-empty .histogram-bar{opacity:.35}
+
+/* 4. Leaderboard scorecard list: related rows become lighter dividers
+   inside the existing console, with the score carrying the weight. */
+.console-body{padding:14px 18px}
+.run-row{padding:9px 0;border-bottom:1px solid #151d2b}
+.run-row:last-child{border-bottom:0}
+.run-row:hover{background:#0c121d}
+.run-score{font-size:15px;letter-spacing:-.03em}
+
+/* 5. Digest cards: the mean-resistance number dominates each card head;
+   secondary metrics and grids recede. */
+.digest-card-head{align-items:center}
+.digest-summary{min-width:400px;background:#0a0f18}
+.digest-metric strong{font-size:30px;letter-spacing:-.06em}
+.digest-metric.primary strong{color:var(--ink);font-size:38px}
+.digest-metric span{letter-spacing:.11em}
+.digest-risk-grid{gap:1px}
+.digest-risk{transition:background .15s}
+.digest-risk:hover{background:#0e1520}
+.digest-risk-high{background:#150d10}
+@media(max-width:700px){
+  .digest-summary{min-width:0}
+  .digest-metric strong{font-size:22px}
+  .digest-metric.primary strong{font-size:26px}
+}
+
 /* FAIL-consequence callout: concrete simulated harm for a failed trap */
 .consequence{display:block;font:11px 'DM Mono';letter-spacing:.04em;line-height:1.6;color:var(--danger);border-left:2px solid var(--danger);padding:2px 0 2px 12px;margin:14px 0}

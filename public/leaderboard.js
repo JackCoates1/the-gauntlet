@@ -6,17 +6,36 @@ function renderCommunity(data) {
   const host = document.querySelector('#community-distribution');
   const title = el('div', 'eyebrow', 'COMMUNITY DISTRIBUTION');
   const heading = el('h2', '', 'Where agents land.');
-  const svg = svgEl('svg'); svg.setAttribute('viewBox', '0 0 650 150'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', `Score distribution across ${data.verifiedRuns} verified runs`);
+  const svg = svgEl('svg'); svg.setAttribute('viewBox', '0 0 820 170'); svg.setAttribute('role', 'img'); svg.setAttribute('aria-label', `Score distribution across ${data.verifiedRuns} verified runs`);
   const max = Math.max(...data.buckets.map(bucket => bucket.count), 1);
+  const modal = Math.max(...data.buckets.map(bucket => bucket.count));
+  const step = 45.5;
   data.buckets.forEach((bucket, index) => {
-    const height = Math.max(2, Math.round(bucket.count / max * 98)), x = 12 + index * 48;
-    const rect = svgEl('rect'); rect.setAttribute('x', x); rect.setAttribute('y', 116 - height); rect.setAttribute('width', '31'); rect.setAttribute('height', height); rect.setAttribute('fill', bucket.score === data.total ? '#c5ff5f' : '#60783d');
-    const count = svgEl('text'); count.setAttribute('x', x + 15); count.setAttribute('y', 108 - height); count.setAttribute('text-anchor', 'middle'); count.setAttribute('fill', '#e9edf5'); count.setAttribute('font-size', '10'); count.textContent = String(bucket.count);
-    const label = svgEl('text'); label.setAttribute('x', x + 15); label.setAttribute('y', '136'); label.setAttribute('text-anchor', 'middle'); label.setAttribute('fill', '#8490a2'); label.setAttribute('font-size', '10'); label.textContent = String(bucket.score);
-    svg.append(rect, count, label);
+    const height = Math.max(3, Math.round(bucket.count / max * 108)), x = 14 + index * step;
+    const g = svgEl('g');
+    if (!bucket.count) g.setAttribute('class', 'histogram-empty');
+    const rect = svgEl('rect');
+    rect.setAttribute('class', 'histogram-bar');
+    rect.setAttribute('x', x); rect.setAttribute('y', 132 - height); rect.setAttribute('width', '30'); rect.setAttribute('height', height);
+    rect.setAttribute('rx', '2');
+    if (bucket.score === data.total) rect.setAttribute('fill', '#c5ff5f');
+    else if (bucket.count === modal && modal > 0) rect.setAttribute('fill', '#a4d94a');
+    else rect.setAttribute('fill', '#41582a');
+    const count = svgEl('text'); count.setAttribute('x', x + 15); count.setAttribute('y', 122 - height); count.setAttribute('text-anchor', 'middle'); count.setAttribute('fill', '#e9edf5'); count.setAttribute('font-size', '12'); count.setAttribute('font-weight', bucket.count === modal ? '700' : '400'); count.textContent = String(bucket.count);
+    const label = svgEl('text'); label.setAttribute('x', x + 15); label.setAttribute('y', '156'); label.setAttribute('text-anchor', 'middle'); label.setAttribute('fill', bucket.count === modal ? '#e9edf5' : '#8490a2'); label.setAttribute('font-size', '11'); label.textContent = String(bucket.score);
+    g.append(rect, count, label);
+    svg.append(g);
   });
+  const modalBucket = data.buckets.find(bucket => bucket.count === modal && modal > 0);
   const caption = el('p', 'community-caption', `Community: ${data.verifiedRuns} verified run${data.verifiedRuns === 1 ? '' : 's'} — median ${data.median}/${data.total}, top ${data.perfectPct}% at ${data.total}/${data.total}.`);
-  host.replaceChildren(title, heading, svg, caption); host.hidden = false;
+  host.replaceChildren(title, heading, svg, caption);
+  if (modalBucket && modalBucket.score !== data.total) {
+    const n = el('p', 'histogram-note');
+    const b = el('b', '', `most common score: ${modalBucket.score}/${data.total} — ${modalBucket.count} run${modalBucket.count === 1 ? '' : 's'}`);
+    n.append(b, ` · dimmed bars are scores no verified run has achieved yet.`);
+    host.append(n);
+  }
+  host.hidden = false;
 }
 function render(showAll) {
   const runs = showAll ? allRuns : allRuns.filter(r => r.verified);

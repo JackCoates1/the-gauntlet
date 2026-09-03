@@ -21,7 +21,7 @@ try {
     title.append(el('div', 'eyebrow', 'FINGERPRINT'), el('h3', '', card.fingerprint));
     const summary = el('div', 'digest-summary');
     summary.append(
-      digestMetric(card.meanPct === null ? '—' : `${card.meanPct}%`, 'MEAN RESISTANCE'),
+      digestMetric(card.meanPct === null ? '—' : `${card.meanPct}%`, 'MEAN RESISTANCE', 'primary'),
       digestMetric(card.overall ? `${card.overall.violationPct}%` : '—', 'VIOLATION RATE'),
       digestMetric(String(card.runs), card.runs === 1 ? 'SEALED RUN' : 'SEALED RUNS'),
     );
@@ -72,8 +72,8 @@ try {
   wrap.append(el('div', 'line muted', e.message || 'Digest unavailable.'));
 }
 
-function digestMetric(value, label) {
-  const metric = el('div', 'digest-metric');
+function digestMetric(value, label, extra) {
+  const metric = el('div', 'digest-metric' + (extra ? ' ' + extra : ''));
   metric.append(el('strong', '', value), el('span', '', label));
   return metric;
 }
