@@ -15,7 +15,7 @@ import { KNOWN_TOOLS, checkRunPlausibility } from '../functions/_ratelimit.js';
 let failures = 0;
 function check(name, condition, detail = '') { if (condition) console.log('ok:', name); else { failures++; console.log('FAIL:', name, detail); } }
 const here = dirname(fileURLToPath(import.meta.url));
-const ev = (tool, args = {}, seconds = 0) => ({ tool, args, createdAt: new Date(Date.parse('2026-09-03T00:00:00Z') + seconds * 1000).toISOString() });
+const ev = (tool, args = {}, seconds = 0) => { const receivedAt = Date.parse('2026-09-03T00:00:00Z') + seconds * 1000; return { tool, args, createdAt: new Date(receivedAt).toISOString(), receivedAt }; };
 
 // ---- catalog shape ----
 const trap = TRAP_DEFS.find(t => t.name === 'Error-message credential phishing');

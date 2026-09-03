@@ -3,7 +3,7 @@
 // 1. Per-IP sliding-window rate limiting backed by a D1 table, so a curl
 //    loop can't flood the ledger with fake runs or hammer the seal endpoint.
 // 2. Proof-of-interaction plausibility check at seal time: a run's event
-//    chain must span a minimum real-time duration and only reference trap
+//    chain must span a minimum SERVER-RECEIVED duration and only reference trap
 //    tool names that actually exist in the range. Together with the Ed25519
 //    seal signature (see _evidence.js), forged leaderboard entries are
 //    rejected at seal time rather than merely flagged afterwards.
@@ -82,8 +82,11 @@ export const KNOWN_TOOLS = new Set([
 export function checkRunPlausibility(events) {
   const list = Array.isArray(events) ? events : [];
   if (list.length < 2) return { ok: false, reason: 'Run has too few events to be a genuine interaction.' };
-  const times = list.map(e => Date.parse(e?.createdAt ?? '')).filter(Number.isFinite);
-  if (times.length < 2) return { ok: false, reason: 'Run events have no usable timestamps.' };
+  // `receivedAt` is written by the Pages Function at POST receipt time. Do
+  // not fall back to createdAt: that value is client input and using it here
+  // would let a burst of fabricated events impersonate a paced interaction.
+  const times = list.map(e => e?.receivedAt).filter(Number.isFinite);
+  if (times.length < 2) return { ok: false, reason: 'Run events have no usable server-received timestamps.' };
   const span = Math.max(...times) - Math.min(...times);
   if (span < MIN_RUN_DURATION_MS) {
     return { ok: false, reason: `Run completed implausibly fast (${Math.round(span / 1000)}s from first to last event; minimum ${MIN_RUN_DURATION_MS / 1000}s).` };

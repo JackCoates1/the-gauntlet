@@ -2,6 +2,8 @@
 // proof-of-interaction plausibility check at seal time.
 import { rateLimit, tooMany, clientIp, checkRunPlausibility, LIMITS, MIN_RUN_DURATION_MS, KNOWN_TOOLS } from '../functions/_ratelimit.js';
 import { TRAP_DEFS } from '../functions/_lib.js';
+import { onRequestPost as ingestEvent } from '../functions/api/events.js';
+import { onRequestPost as sealRun } from '../functions/api/scorecards/[id].js';
 
 let failures = 0;
 function check(name, cond, extra = '') {
@@ -91,11 +93,11 @@ check('clientIp unknown when absent', clientIp(new Request('https://x/')) === 'u
   check('window expiry frees capacity', (await rateLimit(env, 'events', ip)).ok === true);
 }
 
-// 5. Plausibility: too-fast run rejected.
+// 5. Plausibility: too-fast server-received run rejected.
 const iso = ms => new Date(ms).toISOString();
 const fast = [
-  { tool: 'sessionStarted', args: {}, createdAt: iso(0) },
-  { tool: 'checkout', args: {}, createdAt: iso(50) },
+  { tool: 'sessionStarted', args: {}, createdAt: iso(0), receivedAt: 0 },
+  { tool: 'checkout', args: {}, createdAt: iso(50), receivedAt: 50 },
 ];
 {
   const r = checkRunPlausibility(fast);
@@ -106,8 +108,8 @@ const fast = [
 // 6. Plausibility: unknown trap/tool IDs rejected.
 {
   const unknownTool = [
-    { tool: 'sessionStarted', args: {}, createdAt: iso(0) },
-    { tool: 'instantWin', args: { score: 10 }, createdAt: iso(20_000) },
+    { tool: 'sessionStarted', args: {}, createdAt: iso(0), receivedAt: 0 },
+    { tool: 'instantWin', args: { score: 10 }, createdAt: iso(20_000), receivedAt: 20_000 },
   ];
   const r = checkRunPlausibility(unknownTool);
   check('unknown tool id rejected', r.ok === false && /instantWin/.test(r.reason), JSON.stringify(r));
@@ -127,12 +129,12 @@ const fast = [
 // 8. Plausibility: a realistic, spaced, known-tool run passes.
 {
   const real = [
-    { tool: 'sessionStarted', args: {}, createdAt: iso(0) },
-    { tool: 'searchProducts', args: { query: 'node' }, createdAt: iso(2_000) },
-    { tool: 'getPrice', args: { sku: 'NODE-01' }, createdAt: iso(4_500) },
-    { tool: 'addToCart', args: { sku: 'NODE-01', quantity: 1 }, createdAt: iso(7_000) },
-    { tool: 'checkout', args: { items: [] }, createdAt: iso(11_000) },
-    { tool: 'generateScorecard', args: {}, createdAt: iso(12_500) },
+    { tool: 'sessionStarted', args: {}, createdAt: iso(0), receivedAt: 0 },
+    { tool: 'searchProducts', args: { query: 'node' }, createdAt: iso(2_000), receivedAt: 2_000 },
+    { tool: 'getPrice', args: { sku: 'NODE-01' }, createdAt: iso(4_500), receivedAt: 4_500 },
+    { tool: 'addToCart', args: { sku: 'NODE-01', quantity: 1 }, createdAt: iso(7_000), receivedAt: 7_000 },
+    { tool: 'checkout', args: { items: [] }, createdAt: iso(11_000), receivedAt: 11_000 },
+    { tool: 'generateScorecard', args: {}, createdAt: iso(12_500), receivedAt: 12_500 },
   ];
   check('realistic spaced run accepted', checkRunPlausibility(real).ok === true);
   check('single-event run rejected', checkRunPlausibility([real[0]]).ok === false);
@@ -140,6 +142,65 @@ const fast = [
     { tool: 'sessionStarted', args: {}, createdAt: 'not-a-time' },
     { tool: 'checkout', args: {}, createdAt: 'also-bad' },
   ]).ok === false);
+}
+
+// 9. Regression: replay the real exploit against the actual ingest + seal
+// handlers. Sixteen events arrive in one server-time burst while the attacker
+// supplies a convincing 15-second client-createdAt chain. The D1 ledger must
+// retain only the server receipt time for pacing, and seal must reject it.
+class LedgerDB extends FakeDB {
+  constructor() { super(); this.runs = new Map(); this.events = []; this.nextEventId = 1; }
+  prepare(sql) {
+    if (/rate_limits/.test(sql)) return super.prepare(sql);
+    const db = this;
+    return { bind(...args) { return {
+      async run() {
+        if (/INSERT OR IGNORE INTO runs/.test(sql)) {
+          if (!db.runs.has(args[0])) db.runs.set(args[0], { id: args[0], created_at: args[1], user_agent: args[2], scorecard_json: null });
+        } else if (/INSERT INTO events/.test(sql)) {
+          db.events.push({ id: db.nextEventId++, run_id: args[0], tool_name: args[1], args_json: args[2], created_at: args[3], received_at: args[4] });
+        } else if (/UPDATE runs SET score=/.test(sql)) {
+          const run = db.runs.get(args[5]); if (run) Object.assign(run, { score: args[0], total: args[1], scorecard_json: args[2], user_agent: run.user_agent || args[3], sig: args[4] });
+        }
+        return { success: true };
+      },
+      async first() {
+        if (/SELECT COUNT\(\*\) AS n, \(SELECT scorecard_json/.test(sql)) {
+          const run = db.runs.get(args[0]); return { n: db.events.filter(e => e.run_id === args[1]).length, card: run?.scorecard_json || null };
+        }
+        if (/SELECT scorecard_json FROM runs WHERE id = \?/.test(sql)) return db.runs.get(args[0]) ? { scorecard_json: db.runs.get(args[0]).scorecard_json } : null;
+        return null;
+      },
+      async all() {
+        if (/SELECT tool_name,args_json,created_at,received_at FROM events/.test(sql)) {
+          return { results: db.events.filter(e => e.run_id === args[0]).sort((a, b) => a.id - b.id) };
+        }
+        return { results: [] };
+      },
+    }; } };
+  }
+}
+{
+  const db = new LedgerDB();
+  const env = { GAUNTLET_DB: db };
+  const runId = 'f0000000-0000-4000-8000-000000000001';
+  const originalNow = Date.now;
+  Date.now = () => 1_700_000_000_000; // all POSTs are received simultaneously
+  try {
+    const tools = ['sessionStarted', 'searchProducts', 'getPrice', 'getReviews', 'addToCart', 'checkout'];
+    for (let i = 0; i < 16; i++) {
+      const response = await ingestEvent({ request: new Request('https://range.test/api/events', {
+        method: 'POST', headers: { 'content-type': 'application/json', 'cf-connecting-ip': '7.7.7.7' },
+        body: JSON.stringify({ runId, event: { tool: tools[i % tools.length], args: {}, createdAt: iso(i * 1000) } }),
+      }), env });
+      check(`spoofed burst event ${i + 1} accepted into unsealed ledger`, response.status === 200, String(response.status));
+    }
+    const response = await sealRun({ request: new Request('https://range.test/api/scorecards/' + runId, { method: 'POST', body: '{}' }), params: { id: runId }, env });
+    const body = await response.json();
+    check('spoofed timestamp burst is rejected at seal', response.status === 422 && /implausibly fast/.test(body.error), JSON.stringify(body));
+    check('spoofed burst does not create a sealed scorecard', db.runs.get(runId)?.scorecard_json === null);
+    check('ingest overwrites client timestamps with one server receipt timestamp', db.events.every(event => event.created_at === new Date(1_700_000_000_000).toISOString() && event.received_at === 1_700_000_000_000));
+  } finally { Date.now = originalNow; }
 }
 
 console.log(failures ? `\n${failures} FAILURE(S)` : '\nall anti-gaming tests passed');

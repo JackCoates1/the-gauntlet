@@ -18,9 +18,11 @@ CREATE TABLE IF NOT EXISTS events (
   run_id TEXT NOT NULL,
   tool_name TEXT NOT NULL,
   args_json TEXT NOT NULL,
-  created_at TEXT NOT NULL
+  created_at TEXT NOT NULL,
+  received_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS events_run_id ON events(run_id);
+CREATE INDEX IF NOT EXISTS events_run_id_received_at ON events(run_id, received_at);
 CREATE TABLE IF NOT EXISTS rate_limits (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   key TEXT NOT NULL,

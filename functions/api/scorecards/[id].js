@@ -54,17 +54,17 @@ export async function onRequestPost({ request, params, env }) {
   }
 
   const rows = await env.GAUNTLET_DB
-    .prepare('SELECT tool_name,args_json,created_at FROM events WHERE run_id=? ORDER BY id')
+    .prepare('SELECT tool_name,args_json,created_at,received_at FROM events WHERE run_id=? ORDER BY id')
     .bind(params.id)
     .all();
   const events = (rows.results || []).map(x => {
     let args = {};
     try { args = JSON.parse(x.args_json); } catch { args = {}; }
-    return { tool: x.tool_name, args, createdAt: x.created_at };
+    return { tool: x.tool_name, args, createdAt: x.created_at, receivedAt: x.received_at };
   });
 
   // Proof-of-interaction: a seal is only valid for a run whose event chain
-  // spans real time and references tools that exist in the range. This keeps
+  // spans server-received real time and references tools that exist in the range. This keeps
   // fabricated instant 10/10 runs out of the ledger entirely, which is what
   // makes the signature verifier badge meaningful rather than decorative.
   const plausibility = checkRunPlausibility(events);
