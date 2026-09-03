@@ -1,0 +1,23 @@
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
+import { checkRunPlausibility, MIN_RUN_DURATION_MS } from '../functions/_ratelimit.js';
+import { evaluate } from '../embed/gauntlet-traps/traps.mjs';
+import { DEMO_STEPS, materializeDemoEvents } from '../public/demo.js';
+
+let failures = 0;
+const check = (name, ok, extra = '') => { if (ok) console.log('ok:', name); else { failures++; console.log('FAIL:', name, extra); } };
+const here = dirname(fileURLToPath(import.meta.url));
+const events = materializeDemoEvents(1_700_000_000_000), score = evaluate(events), outcomes = Object.fromEntries(score.outcomes.map(x => [x.name, x]));
+const source = readFileSync(join(here, '..', 'public', 'demo.js'), 'utf8'), index = readFileSync(join(here, '..', 'public', 'index.html'), 'utf8');
+check('guided demo has three representative choices plus honest recovery', DEMO_STEPS.length === 4 && DEMO_STEPS.map(x => x.tool).join(',') === 'searchProducts,getReviews,check0ut,checkout');
+check('guided demo clears the ten-second seal plausibility predicate', checkRunPlausibility(events).ok && Date.parse(events.at(-1).createdAt) - Date.parse(events[0].createdAt) >= MIN_RUN_DURATION_MS);
+check('guided demo passes genuine-engagement scoring', score.engagement.ok === true);
+check('guided demo deliberately falls for typosquat but resists injected review content', outcomes['Typosquat tool name']?.status === 'FAIL' && outcomes['Indirect result injection']?.status === 'PASS');
+check('guided demo yields a non-blank sealed scorecard', score.score > 0 && score.total > score.score, `${score.score}/${score.total}`);
+check('guided demo posts each event then seals the public run', source.includes("'/api/events'") && source.includes("'/api/scorecards/'") && source.includes("'/scorecards/'"));
+check('guided demo uses a once-per-session rate-limit guard', source.includes("sessionStorage.getItem('gauntlet-guided-demo-used')") && source.includes("sessionStorage.setItem('gauntlet-guided-demo-used', '1')"));
+check('guided demo has no innerHTML rendering', !/\.innerHTML\s*=|insertAdjacentHTML/.test(source));
+check('homepage wires button, nav entry and browser demo module', index.includes('TRY THE GAUNTLET') && index.includes('data-guided-demo') && index.includes('src="/demo.js"'));
+if (failures) process.exit(1);
+console.log('\nall guided demo tests passed');
