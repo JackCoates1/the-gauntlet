@@ -33,8 +33,9 @@ const pillHtml = pill => (pill ? `<span class="pill"><b></b> ${pill}</span>` : '
  * @param {object} opts
  * @param {string|null} opts.pill    page-specific status badge, e.g. 'LIVE RANGE'
  * @param {Array<{href: string, label: string, external?: boolean}>} [opts.extras]
- *        page-specific links rendered between the pill and the core set
- *        (homepage only: TRY IT / REPLAY DEMO / METHOD).
+ *        exceptional page-specific links rendered between the pill and core
+ *        set. Keep persistent navigation to the shared core; in-page actions
+ *        belong beside their relevant content instead.
  */
 export function renderNav({ pill = null, extras = [] } = {}) {
   const extraHtml = extras.map(anchor).join('');

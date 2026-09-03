@@ -60,6 +60,21 @@ for (const page of pages) {
   check(contiguous, `${routeFor(page)} keeps core nav links contiguous and ordered`);
 }
 
+const homepageNav = navOf(readFileSync(join(publicDir, 'index.html'), 'utf8'));
+const homepageLinks = anchorsOf(homepageNav);
+check(homepageLinks.length === coreLinks.length + 1,
+  'homepage nav contains only the brand plus the shared seven-link core');
+check(!/TRY IT|REPLAY DEMO|METHOD/.test(homepageNav),
+  'homepage keeps guided-demo and method actions in page content, not persistent nav');
+
+const styles = readFileSync(join(publicDir, 'styles.css'), 'utf8');
+check(/nav a,.pill\{white-space:nowrap\}/.test(styles),
+  'nav labels cannot wrap within a multi-word item');
+check(/nav\{[^}]*flex-wrap:wrap/.test(styles),
+  'nav can wrap complete items onto a new row');
+check(/@media\(max-width:700px\)\{nav>a:not\(\.brand\)\{display:none\}\}/.test(styles),
+  'mobile nav continues to hide the desktop link set');
+
 // Generated-page sources must render from the shared module, not re-hardcode.
 for (const src of ['scripts/build-traps-page.mjs', 'scripts/build-connect-page.mjs']) {
   const source = readFileSync(join(root, src), 'utf8');

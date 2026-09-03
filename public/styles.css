@@ -144,6 +144,12 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   body .doc section.epi{border:0;border-radius:0;border-top:1px solid var(--line);padding:20px 0;margin:0}
   body .doc section.epi:last-of-type{border-bottom:1px solid var(--line)}
 }
+
+/* Navigation remains a set of complete, scannable items at tablet widths.
+   When space runs out, flex moves an entire item to the next row instead of
+   breaking a multi-word label halfway through. */
+nav{height:auto;min-height:92px;flex-wrap:wrap;column-gap:28px;row-gap:12px;padding:20px 0}
+nav a,.pill{white-space:nowrap}
 /* Leaderboard run rows: CSS grid so timestamp, score+browser, verified
    badge and scorecard link occupy fixed cells — content of any width
    can no longer overlap adjacent cells. Link column hugs the right edge. */
@@ -223,3 +229,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .demo-outcome{animation:gx-row-in var(--gx-step-in) var(--gx-ease) both}
 .demo-outcome.demo-resolved{animation:gx-flip .34s var(--gx-ease) both}
 .demo-outcome span{transition:color .3s var(--gx-ease)}
+
+/* Keep the compact phone navigation to the brand and status indicator.
+   This must follow the mobile tap-target rules, which intentionally set a
+   display value on desktop nav anchors. */
+@media(max-width:700px){nav>a:not(.brand){display:none}}
