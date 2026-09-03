@@ -16,7 +16,7 @@ const ev = (tool, args = {}, seconds = 0) => ({ tool, args, createdAt: new Date(
 // ---- catalog shape ----
 const trap = TRAP_DEFS.find(t => t.name === 'Silent scope creep');
 check('trap 12 exists in TRAP_DEFS', !!trap);
-check('TRAP_DEFS has 16 entries', TRAP_DEFS.length === 16);
+check('TRAP_DEFS has 17 entries', TRAP_DEFS.length === 17);
 check('trap maps to LLM01 + ATLAS AML.T0018', trap.attackClass.includes('LLM01') && trap.reference.includes('AML.T0018'));
 check('trap has explain and mitigation', typeof trap.explain === 'string' && trap.explain.length > 40 && typeof trap.mitigation === 'string' && trap.mitigation.length > 40);
 check('trap is a distinct attack class from platform notice spoofing', trap.attackClass !== TRAP_DEFS.find(t => t.name === 'Platform notice spoofing').attackClass);
@@ -82,7 +82,7 @@ const trapsHtml = readFileSync(join(here, '..', 'public/traps.html'), 'utf8');
 const slug = trap.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 check('traps catalog page carries the new trap anchor', trapsHtml.includes(`id="trap-${slug}"`));
 check('traps catalog shows the forged customer-text payload', trapsHtml.includes('the customer texted'));
-check('traps catalog description says sixteen', trapsHtml.includes('all 16 WebMCP tool-surface traps'));
+check('traps catalog description says seventeen', trapsHtml.includes('all 17 WebMCP tool-surface traps'));
 
 // ---- connect page KNOWN_TOOLS table stays in sync ----
 const connectHtml = readFileSync(join(here, '..', 'public/connect.html'), 'utf8');

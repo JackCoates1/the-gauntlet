@@ -1,5 +1,5 @@
 // Deterministic score-distribution math, shared by the public API and tests.
-export const SCORE_TOTAL = 16;
+export const SCORE_TOTAL = 17;
 
 export function summarizeScores(scores, total = SCORE_TOTAL) {
   const buckets = Array.from({ length: total + 1 }, (_, score) => ({ score, count: 0 }));

@@ -23,7 +23,7 @@ export function buildHomepageJsonLd(community, origin) {
   const o = String(origin || '').replace(/\/+$/, '');
   const sealedRuns = Number(community && community.sealedRuns) || 0;
   const avgResisted = Number(community && community.averageResisted);
-  const possible = Number(community && community.possibleTraps) || 16;
+  const possible = Number(community && community.possibleTraps) || 17;
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',

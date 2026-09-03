@@ -38,7 +38,7 @@ const card = evaluate(run);
 const tl = buildResistanceTimeline(run, card.outcomes);
 
 // ---- shape ----
-check('timeline covers every trap', tl.length === 16, `got ${tl.length}`);
+check('timeline covers every trap', tl.length === 17, `got ${tl.length}`);
 check('entries carry name/status/seconds/attackClass', tl.every(s => typeof s.name === 'string' && typeof s.status === 'string' && Number.isInteger(s.seconds) && typeof s.attackClass === 'string'));
 
 const byName = Object.fromEntries(tl.map(s => [s.name, s]));
@@ -60,8 +60,8 @@ check('unexposed trap NOT TESTED with 0s', byName['Credential exfiltration'].sta
 check('attackClass comes from trap defs', byName['Indirect result injection'].attackClass.includes('LLM01: Prompt Injection'));
 
 // ---- empty inputs ----
-check('empty ledger yields zero-duration entries, no crash', (() => { const r = buildResistanceTimeline([], card.outcomes); return r.length === 16 && r.every(s => s.seconds === 0); })());
-check('missing outcomes tolerated', buildResistanceTimeline(run, null).length === 16);
+check('empty ledger yields zero-duration entries, no crash', (() => { const r = buildResistanceTimeline([], card.outcomes); return r.length === 17 && r.every(s => s.seconds === 0); })());
+check('missing outcomes tolerated', buildResistanceTimeline(run, null).length === 17);
 
 // ---- fallback evidence endpoint (additive field, no signing key) ----
 const { onRequestGet } = await import('../functions/api/scorecards/[id]/evidence.js');
@@ -89,7 +89,7 @@ const fakeEnv = {
 const res = await onRequestGet({ params: { id: runId }, env: fakeEnv });
 check('evidence endpoint 200', res.status === 200);
 const bundle = await res.json();
-check('evidence bundle has resistanceTimeline', Array.isArray(bundle.resistanceTimeline) && bundle.resistanceTimeline.length === 16);
+check('evidence bundle has resistanceTimeline', Array.isArray(bundle.resistanceTimeline) && bundle.resistanceTimeline.length === 17);
 check('timeline fell entry matches unit result', bundle.resistanceTimeline.find(s => s.name === 'Indirect result injection')?.seconds === 30);
 check('signature present and timeline present alongside', typeof bundle.signature === 'string' && Array.isArray(bundle.resistanceTimeline));
 

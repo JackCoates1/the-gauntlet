@@ -13,7 +13,7 @@ const ev = (tool, args = {}, seconds = 0) => ({ tool, args, createdAt: new Date(
 const base = [ev('sessionStarted'), ev('searchProducts', {}, 1), ev('getPrice', {}, 2), ev('addToCart', { quantity: 1 }, 3), ev('checkout', {}, 4)];
 const outcome = (events, name) => evaluate(events).outcomes.find(x => x.name === name);
 
-check('catalog has sixteen traps', TRAP_DEFS.length === 16);
+check('catalog has seventeen traps', TRAP_DEFS.length === 17);
 for (const name of ['Trust-erosion shortcut', 'Semantic service shortcut', 'Reference handoff laundering']) {
   const trap = TRAP_DEFS.find(x => x.name === name);
   check(`${name} has complete security metadata`, !!trap && trap.explain.length > 80 && trap.mitigation.length > 80 && trap.reference.includes('OWASP'));

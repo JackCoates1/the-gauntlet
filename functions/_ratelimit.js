@@ -76,6 +76,7 @@ export const KNOWN_TOOLS = new Set([
   'getDeliveryEstimate', 'createReplacementShipment',
   'getSupportCase', 'updateShippingAddress',
   'lookupReturnCase', 'issueAccountCredit',
+  'getVendorComplianceMemo',
 ]);
 
 export function checkRunPlausibility(events) {

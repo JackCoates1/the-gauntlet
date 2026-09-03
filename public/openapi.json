@@ -724,7 +724,7 @@
           "Research"
         ],
         "summary": "Aggregate verified community score distribution",
-        "description": "Buckets authentic signed runs by raw score 0 through 16. Median and quartiles use linear interpolation over sorted scores.",
+        "description": "Buckets authentic signed runs by raw score 0 through 17. Median and quartiles use linear interpolation over sorted scores.",
         "responses": {
           "200": {
             "description": "Verified score histogram and summary statistics.",
@@ -1434,12 +1434,12 @@
         ],
         "properties": {
           "total": {
-            "const": 16
+            "const": 17
           },
           "buckets": {
             "type": "array",
-            "minItems": 17,
-            "maxItems": 17,
+            "minItems": 18,
+            "maxItems": 18,
             "items": {
               "type": "object",
               "required": [
@@ -1450,7 +1450,7 @@
                 "score": {
                   "type": "integer",
                   "minimum": 0,
-                  "maximum": 16
+                  "maximum": 17
                 },
                 "count": {
                   "type": "integer",

@@ -50,13 +50,13 @@ const home = buildHomepageJsonLd({ sealedRuns: 10, averageResisted: 7.3, possibl
 check('homepage JSON-LD is a SecurityApplication', home['@type'] === 'SoftwareApplication' && home.applicationCategory === 'SecurityApplication');
 check('homepage offer is $0', home.offers.price === '0');
 check('homepage rating mirrors trapstats community average', home.aggregateRating.ratingValue === 7.3 && home.aggregateRating.bestRating === 13 && home.aggregateRating.ratingCount === 10);
-check('homepage rating fallback keeps the sixteen-trap scale', buildHomepageJsonLd({ sealedRuns: 1, averageResisted: 16 }, 'https://x.test').aggregateRating.bestRating === 16);
+check('homepage rating fallback keeps the seventeen-trap scale', buildHomepageJsonLd({ sealedRuns: 1, averageResisted: 17 }, 'https://x.test').aggregateRating.bestRating === 17);
 check('homepage rating omitted when no sealed runs', buildHomepageJsonLd({ sealedRuns: 0 }, 'https://x.test').aggregateRating === undefined);
 
 // ---- unit: traps ItemList ----
 const { TRAP_DEFS } = await import('../embed/gauntlet-traps/traps.mjs');
 const traps = buildTrapsJsonLd(TRAP_DEFS, 'https://gauntlet.jackcoates.co.uk');
-check('traps JSON-LD is an ItemList covering all sixteen traps', traps['@type'] === 'ItemList' && traps.numberOfItems === TRAP_DEFS.length && traps.itemListElement.length === 16);
+check('traps JSON-LD is an ItemList covering all seventeen traps', traps['@type'] === 'ItemList' && traps.numberOfItems === TRAP_DEFS.length && traps.itemListElement.length === 17);
 check('every trap description comes from the explain field', traps.itemListElement.every((e, i) => e.description === TRAP_DEFS[i].explain && e.name === TRAP_DEFS[i].name));
 check('trap positions are 1..N deep links into /traps', traps.itemListElement.every((e, i) => e.position === i + 1 && /^https:\/\/gauntlet\.jackcoates\.co\.uk\/traps#trap-/.test(e.url)));
 
@@ -95,7 +95,7 @@ check('homepage injector uses no innerHTML', !/\.innerHTML\s*=/.test(recentJs));
 check('index.html keeps the recent.js script tag the injector rides on', indexHtml.includes('src="/recent.js"'));
 const trapsHtml = readFileSync(join(root, 'public/traps.html'), 'utf8');
 const trapsParsed = parseBlock(trapsHtml);
-check('built /traps page carries a valid ItemList in <head>', trapsParsed && trapsParsed['@type'] === 'ItemList' && trapsParsed.numberOfItems === 16);
+check('built /traps page carries a valid ItemList in <head>', trapsParsed && trapsParsed['@type'] === 'ItemList' && trapsParsed.numberOfItems === 17);
 check('traps page block escapes hostile explain text', !/<script>/i.test(trapsHtml) && trapsHtml.includes('\\u003c') === false); // catalog text is clean; escape path proven above
 const scorecardJs = readFileSync(join(root, 'public/scorecard.js'), 'utf8');
 check('scorecard.js injects the Event JSON-LD via createElement + textContent', scorecardJs.includes("application/ld+json") && scorecardJs.includes("script.textContent = JSON.stringify(jsonLd)") && !/\.innerHTML\s*=/.test(scorecardJs));
