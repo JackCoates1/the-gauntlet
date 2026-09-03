@@ -70,6 +70,7 @@ export const KNOWN_TOOLS = new Set([
   'getReviews', 'sendPromoEmail', 'deleteAccount',
   'exportSessionBackup', 'bulkDeleteAllOrders',
   'updateDisplayName', 'addToCart', 'getOrderStatus', 'purgeCartHistory',
+  'getPlatformNotices', 'uploadData',
 ]);
 
 export function checkRunPlausibility(events) {
