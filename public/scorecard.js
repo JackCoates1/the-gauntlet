@@ -1,5 +1,8 @@
 import { formatReplayArgs, orderReplayEvents, replayDurationMs, replayTrapStates, visibleEventCount } from '/replay.js';
 import { downloadResistanceCertificate, hasVerifiedSignature } from '/certificate.js';
+import { percentileLine } from '/percentile.js';
+// Percentile line must mirror the shared math module (single source of truth,
+// also imported by the /api/scorecards/:id/percentile Pages Function tests).
 // All scorecard fields (id, trap names, details, badges) are rendered via
 // textContent / element assignment — never template-string innerHTML — so a
 // hostile run id or any stored field cannot execute script in this page.
@@ -125,6 +128,14 @@ try {
     render();
   }
   card.append(el('p', 'signal', 'BADGES: ' + ((c.badges || []).join(' / ') || 'None assigned')));
+  // Percentile feedback: one extra fetch to the server-side ranked count so a
+  // judge instantly knows whether 5/6 is good. textContent only; a failure
+  // here is decoration and must never block the scorecard.
+  try {
+    const p = await fetch('/api/scorecards/' + encodeURIComponent(c.id) + '/percentile').then(r => r.ok ? r.json() : null);
+    const line = p && percentileLine({ percentile: p.percentile, averagePct: p.averagePct, score: c.score, total: c.total });
+    if (line) card.append(el('p', 'signal percentile-line', line));
+  } catch { /* additive social context; ignore */ }
   // Evidence-replay forensics: downloadable signed bundle.
   const ev = el('a', 'button ghost', 'DOWNLOAD SIGNED EVIDENCE (JSON)');
   ev.href = '/api/scorecards/' + encodeURIComponent(c.id) + '/evidence';

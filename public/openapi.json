@@ -304,6 +304,60 @@
         }
       }
     },
+    "/api/scorecards/{runId}/percentile": {
+      "get": {
+        "tags": [
+          "Research"
+        ],
+        "summary": "Community percentile for a sealed run",
+        "description": "Server-side ranked count over every other sealed run. Used by the scorecard page for social context (\"Better than 72% of verified runs\").",
+        "parameters": [
+          {
+            "name": "runId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "example": "7f0c2e5a-1d4b-4a9e-9f21-3c8b6d5e2a10"
+            },
+            "description": "UUID v4 chosen by the client for this run."
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Percentile, peer count and community average.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Percentile"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid run ID.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Run not found.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/leaderboard": {
       "get": {
         "tags": [
@@ -924,6 +978,47 @@
           "generatedAt": {
             "type": "string",
             "format": "date-time"
+          }
+        }
+      },
+      "Percentile": {
+        "type": "object",
+        "required": [
+          "id",
+          "percentile",
+          "betterThanCount",
+          "peerCount",
+          "averagePct"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "7f0c2e5a-1d4b-4a9e-9f21-3c8b6d5e2a10"
+          },
+          "percentile": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "minimum": 0,
+            "maximum": 100,
+            "description": "Share of peer runs this run beat; null when no peers."
+          },
+          "betterThanCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "peerCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "averagePct": {
+            "type": [
+              "number",
+              "null"
+            ],
+            "description": "Mean peer score percentage."
           }
         }
       }
