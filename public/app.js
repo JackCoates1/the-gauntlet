@@ -46,7 +46,7 @@ let unregister = [];
 function registerTools() {
   const context = document.modelContext || navigator.modelContext;
   if (!context?.registerTool) { document.querySelector('#mcpState').textContent = 'WebMCP API NOT EXPOSED — HUMAN VIEW'; line('WebMCP not exposed in this browser. Inspector / Chrome test flag supported.', 'muted'); return; }
-  try { unregister = tools.map(tool => context.registerTool(tool)).filter(Boolean); document.querySelector('#mcpState').textContent = `${tools.length} WEBCMP TOOLS ARMED`; line(`${tools.length} tools registered via document.modelContext.registerTool()`); }
+  try { unregister = tools.map(tool => context.registerTool(tool)).filter(Boolean); document.querySelector('#mcpState').textContent = `${tools.length} WEBMCP TOOLS ARMED`; line(`${tools.length} tools registered via document.modelContext.registerTool()`); }
   catch (error) { document.querySelector('#mcpState').textContent='REGISTRATION ERROR'; line(`registration error: ${error.message}`); }
 }
 async function generateScorecard() {

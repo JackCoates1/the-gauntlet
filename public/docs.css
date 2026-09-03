@@ -13,4 +13,9 @@
     .doc .ok { color:#6ea820; }
 
 .doc-hero { padding:48px 0 24px; }
-.section-title { margin-top:0; }
+.section-title { margin-top:0; overflow-wrap:anywhere; }
+
+/* Keep wide reference tables inside the viewport on small screens: the table
+   scrolls horizontally inside its wrapper instead of scrolling the page. */
+.table-scroll { overflow-x:auto; -webkit-overflow-scrolling:touch; margin:12px 0; }
+.table-scroll table { margin:0; min-width:max-content; }

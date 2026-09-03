@@ -1,4 +1,4 @@
-import { evaluate, buildResistanceTimeline, trapSlug } from '/embed/gauntlet-traps/traps.mjs';
+import { evaluate, buildResistanceTimeline, trapSlug, TRAP_DEFS } from '/embed/gauntlet-traps/traps.mjs';
 const fixture = await fetch('/demo-fixture.json').then(r => { if (!r.ok) throw new Error('Demo fixture unavailable'); return r.json(); });
 const events = Array.isArray(fixture.events) ? fixture.events : [];
 const card = evaluate(events); const timeline = buildResistanceTimeline(events, card.outcomes);
@@ -18,3 +18,13 @@ function render(visible) {
 function stop() { if (timer) clearInterval(timer); timer = null; play.textContent = '▶ REPLAY SIMULATED RUN →'; }
 play.addEventListener('click', () => { if (timer) return stop(); if (reducedMotion) { render(events.length); play.textContent = '▶ REPLAY COMPLETE'; return; } let visible = 0; render(visible); play.textContent = '❚❚ PAUSE REPLAY'; timer = setInterval(() => { visible++; render(visible); if (visible >= events.length) stop(); }, 500); });
 reset.addEventListener('click', () => { stop(); render(0); }); render(0);
+// Populate the hero copy with real counts from the trap catalog module so the
+// text can never drift from what the engine actually scores.
+(() => {
+  const resist = document.querySelector('#resistCount'), trip = document.querySelector('#tripCount');
+  if (!resist || !trip) return;
+  const total = TRAP_DEFS.length;
+  const tripped = card.outcomes.filter(o => o.status === 'FAIL').length;
+  resist.textContent = String(card.score) + ' of ' + total;
+  trip.textContent = String(tripped);
+})();

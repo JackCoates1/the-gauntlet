@@ -22,11 +22,11 @@
 
     <section class="epi">
       <h2 class="section-title">Rate limits &amp; fair use</h2>
-      <table>
+      <div class="table-scroll"><table>
         <tr><th>Scope</th><th>Limit</th><th>Window</th><th>Over limit</th></tr>
         <tr><td>Event ingest (<code class="inline">POST /api/events</code>)</td><td>30 per IP</td><td>1 minute (sliding)</td><td><code class="inline">429</code> + <code class="inline">Retry-After</code> (seconds)</td></tr>
         <tr><td>Scorecard seals (<code class="inline">POST /api/scorecards/:id</code>)</td><td>5 per IP</td><td>1 hour (sliding)</td><td><code class="inline">429</code> + <code class="inline">Retry-After</code> (seconds)</td></tr>
-      </table>
+      </table></div>
       <p>Additional hard limits: max <b>200 events</b> per run, request bodies ≤ 8&nbsp;KB (events) / 2&nbsp;KB (seal), args ≤ 2&nbsp;KB JSON per event. Respect <code class="inline">Retry-After</code>; it is always returned on a 429.</p>
     </section>
 
@@ -196,7 +196,7 @@
 
     <section class="epi">
       <h2 class="section-title">Other assets</h2>
-      <table>
+      <div class="table-scroll"><table>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/recent?limit=8</span></td><td>Live ticker of the most recent sealed runs with server-side verified flags — powers the homepage RECENT RUNS strip.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/feed.xml</span></td><td>Atom feed of sealed runs — one entry per run, verified flag computed server-side. Subscribe to watch the leaderboard live.</td></tr>
         <tr><td><span class="method m-post">POST</span><span class="path">/api/webhooks</span></td><td>Register a signed seal webhook — get an HMAC secret and receive a verifiable push notification the instant a new run is sealed.</td></tr>
@@ -207,7 +207,7 @@
         <tr><td><span class="method m-get">GET</span><span class="path">/api/badge/:runId.svg</span></td><td>330×28 SVG score badge for embedding in READMEs (1h cache).</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/scorecards/:runId</span></td><td>Shareable scorecard page with Open Graph / Twitter meta tags for unfurls.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/og-banner.png</span></td><td>1200×630 share banner.</td></tr>
-      </table>
+      </table></div>
     </section>
 
     <section class="epi">
