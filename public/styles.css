@@ -122,3 +122,26 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   body .doc section.epi{border:0;border-radius:0;border-top:1px solid var(--line);padding:20px 0;margin:0}
   body .doc section.epi:last-of-type{border-bottom:1px solid var(--line)}
 }
+/* Leaderboard run rows: CSS grid so timestamp, score+browser, verified
+   badge and scorecard link occupy fixed cells — content of any width
+   can no longer overlap adjacent cells. Link column hugs the right edge. */
+.run-row{display:grid;grid-template-columns:minmax(122px,auto) minmax(120px,1fr) auto auto;gap:4px 14px;align-items:center;padding:2px 0}
+.run-row .run-ts{white-space:nowrap;font-variant-numeric:tabular-nums}
+.run-scorecell{display:flex;align-items:baseline;gap:8px;min-width:0}
+.run-score{white-space:nowrap}
+.run-browser{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.run-row .run-chip{white-space:nowrap;justify-self:start}
+.run-row .run-link{white-space:nowrap;justify-self:end}
+@media(max-width:700px){
+  /* Mobile: stack each run into two aligned rows instead of squeezing
+     four columns into a phone-width console. */
+  .run-row{grid-template-columns:auto 1fr auto;grid-template-areas:"ts ts chip" "score score link";row-gap:3px}
+  .run-row .run-ts{grid-area:ts}
+  .run-row .run-scorecell{grid-area:score}
+  .run-row .run-chip{grid-area:chip}
+  .run-row .run-link{grid-area:link}
+}
+.run-row .run-score.fail{color:var(--danger)}
+/* Inline clarity notes: short, muted, single-line explainers that borrow
+   the console language rather than adding heavy copy blocks. */
+.clarity-note{margin:0 0 12px;font-size:12px;color:#8d99ab;line-height:1.55;max-width:640px}

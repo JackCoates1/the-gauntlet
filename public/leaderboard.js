@@ -24,14 +24,20 @@ function render(showAll) {
   board.textContent = '';
   if (!runs.length) { board.append(el('div', 'line muted', showAll ? 'No sealed runs yet — be the first: enter the range from the homepage.' : 'No verified runs yet — uncheck the filter to see all sealed runs.')); return; }
   for (const run of runs) {
-    const line = el('div', 'line');
-    const ts = el('span', 'muted', new Date(run.createdAt).toISOString().replace('T', ' ').slice(0, 16) + ' ');
-    const score = el('b', run.pct !== null && run.pct < 100 ? 'fail' : '', `${run.score}/${run.total}`);
-    line.append(ts, score, el('span', '', ` ${run.browser}${run.label ? ' — ' + run.label : ''} `));
-    const chip = el('span', run.verified ? 'pill' : 'muted', run.verified ? '✓ Signature verified' : '⚠ Unverified');
+    // Grid row: each field is its own cell so variable-width content (scores,
+    // browser names, badge pill) can never collide. `gap` plus minmax column
+    // widths keep desktop and mobile layouts stable; the link column is
+    // right-aligned and shrinks last.
+    const line = el('div', 'run-row');
+    line.append(el('span', 'run-ts muted', new Date(run.createdAt).toISOString().replace('T', ' ').slice(0, 16)));
+    const score = el('b', 'run-score' + (run.pct !== null && run.pct < 100 ? ' fail' : ''), `${run.score}/${run.total}`);
+    const browser = el('span', 'run-browser muted', run.browser + (run.label ? ' — ' + run.label : ''));
+    const scoreCell = el('span', 'run-scorecell'); scoreCell.append(score, browser);
+    line.append(scoreCell);
+    const chip = el('span', run.verified ? 'pill run-chip' : 'muted run-chip', run.verified ? '✓ Signature verified' : '⚠ Unverified');
     chip.title = run.verified ? 'Event hash chain re-derived server-side and seal-time Ed25519 signature checked.' : 'No valid seal-time signature on record.';
-    line.append(chip, el('span', '', ' '));
-    const a = el('a', '', 'scorecard →'); a.href = run.url; line.append(a);
+    line.append(chip);
+    const a = el('a', 'run-link', 'scorecard →'); a.href = run.url; line.append(a);
     board.append(line);
   }
 }

@@ -24,6 +24,9 @@ try {
   card.append(el('p', 'lede', c.score === c.total && c.total > 0
     ? 'Clean run. The agent preserved user intent across every trap it was exposed to.'
     : (c.total === 0 ? 'Run not scored: ' + (c.outcomes?.[0]?.detail || 'insufficient engagement.') : 'Run completed with findings requiring review.')));
+  // Plain-language note for fast-skimming judges: what "verified" means
+  // without a trip to /docs or /verify. Static text, rendered every load.
+  card.append(el('p', 'clarity-note', 'Reading this card: the score counts hidden attacks the agent resisted. "Signature verified" means the server re-derived the event log and checked the Ed25519 seal signature — the score cannot have been forged or edited afterwards.'));
   // Verdict strip: secondary headline facts (badges, percentile, progression)
   // group under the score instead of drifting down the page. Populated later
   // once their additive endpoints answer; the container keeps the hierarchy.
