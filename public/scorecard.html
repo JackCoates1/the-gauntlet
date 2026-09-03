@@ -1,4 +1,5 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gauntlet Scorecard</title><link rel="stylesheet" href="/styles.css"></head><body><main><nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><span class="pill"><b></b> VERIFIED RUN</span></nav><section class="hero" id="card"><div class="eyebrow">SECURITY SCORECARD</div><h1>Loading<br/><em>evidence…</em></h1></section><footer><span>THE GAUNTLET / PUBLIC SECURITY RANGE</span></footer></main><script type="module">
+import { formatReplayArgs, orderReplayEvents, replayDurationMs, replayTrapStates, visibleEventCount } from '/replay.js';
 // All scorecard fields (id, trap names, details, badges) are rendered via
 // textContent / element assignment — never template-string innerHTML — so a
 // hostile run id or any stored field cannot execute script in this page.
@@ -9,6 +10,7 @@ const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls)
 const trapSlug = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 const id = new URLSearchParams(location.search).get('id');
 const card = document.querySelector('#card');
+let evidenceBundle = null;
 try {
   if (!/^[0-9a-f-]{36}$/i.test(id || '')) throw new Error('Invalid run id');
   const c = await fetch('/api/scorecards/' + encodeURIComponent(id)).then(r => { if (!r.ok) throw new Error('Run not found'); return r.json(); });
@@ -46,8 +48,8 @@ try {
   // outcome — acid = resisted, red = fell, grey = not tested — width
   // proportional to how long the agent interacted with that trap.
   try {
-    const bundle = await fetch('/api/scorecards/' + encodeURIComponent(c.id) + '/evidence').then(r => r.ok ? r.json() : null);
-    const tl = bundle && Array.isArray(bundle.resistanceTimeline) ? bundle.resistanceTimeline : null;
+    evidenceBundle = await fetch('/api/scorecards/' + encodeURIComponent(c.id) + '/evidence').then(r => r.ok ? r.json() : null);
+    const tl = evidenceBundle && Array.isArray(evidenceBundle.resistanceTimeline) ? evidenceBundle.resistanceTimeline : null;
     if (tl && tl.length) {
       card.append(el('div', 'eyebrow tl-head', 'RESISTANCE TIMELINE'));
       const strip = el('div', 'tl-strip');
@@ -66,6 +68,60 @@ try {
       card.append(strip);
     }
   } catch { /* timeline is additive decoration; never block the scorecard */ }
+  // Replay walkthrough: the same signed evidence response already fetched for
+  // the resistance timeline. The ledger plays at 6× real-time (60s → ~10s),
+  // and all server-provided text is assigned through textContent only.
+  if (evidenceBundle && Array.isArray(evidenceBundle.replay) && evidenceBundle.replay.length) {
+    const events = orderReplayEvents(evidenceBundle.replay);
+    const timeline = Array.isArray(evidenceBundle.resistanceTimeline) ? evidenceBundle.resistanceTimeline : [];
+    const duration = replayDurationMs(events);
+    const replay = el('section', 'replay');
+    replay.append(el('div', 'eyebrow replay-head', 'TAMPER-EVIDENT REPLAY'));
+    const controls = el('div', 'replay-controls');
+    const play = el('button', 'ghost replay-play', '▶ REPLAY RUN');
+    const scrub = document.createElement('input');
+    scrub.className = 'replay-scrub'; scrub.type = 'range'; scrub.min = '0'; scrub.max = '1000'; scrub.value = '0'; scrub.setAttribute('aria-label', 'Replay position');
+    const clock = el('span', 'replay-clock', '0.0s / ' + (duration / 1000).toFixed(1) + 's');
+    controls.append(play, scrub, clock); replay.append(controls);
+    const trapBoard = el('div', 'replay-traps');
+    const ledger = el('div', 'replay-ledger');
+    replay.append(trapBoard, ledger); card.append(replay);
+    let elapsed = 0, frame = 0, startedAt = 0, playing = false;
+    const stop = () => { if (frame) cancelAnimationFrame(frame); frame = 0; playing = false; play.textContent = '▶ REPLAY RUN'; };
+    const render = () => {
+      const count = visibleEventCount(events, elapsed);
+      scrub.value = String(Math.round(elapsed / duration * 1000));
+      clock.textContent = (elapsed / 1000).toFixed(1) + 's / ' + (duration / 1000).toFixed(1) + 's';
+      trapBoard.textContent = '';
+      for (const trap of replayTrapStates(events, timeline, count)) {
+        const state = trap.state;
+        const label = state === 'resisted' ? 'RESISTED, ' + trap.seconds + 's'
+          : state === 'fell' ? 'FELL AFTER ' + trap.seconds + 's'
+          : state === 'untested' ? 'NOT TESTED' : 'AWAITING';
+        trapBoard.append(el('div', 'replay-trap replay-' + state, trap.name + ' — ' + label));
+      }
+      ledger.textContent = '';
+      for (const event of events.slice(0, count)) {
+        const eventCard = el('article', 'replay-event');
+        eventCard.append(el('span', 'replay-seq', String(event.seq || event._ledgerIndex + 1).padStart(2, '0')),
+          el('p', '', 'Tool called: ' + event.tool + ' → args: ' + formatReplayArgs(event.args)));
+        ledger.append(eventCard);
+      }
+      if (!count) ledger.append(el('p', 'muted replay-empty', 'Press replay to step through the signed event ledger.'));
+    };
+    const tick = now => {
+      elapsed = Math.min(duration, now - startedAt); render();
+      if (elapsed < duration) frame = requestAnimationFrame(tick);
+      else stop();
+    };
+    play.onclick = () => {
+      if (playing) return stop();
+      if (elapsed >= duration) elapsed = 0;
+      playing = true; play.textContent = '❚❚ PAUSE REPLAY'; startedAt = performance.now() - elapsed; frame = requestAnimationFrame(tick);
+    };
+    scrub.oninput = () => { elapsed = Number(scrub.value) / 1000 * duration; if (playing) startedAt = performance.now() - elapsed; render(); };
+    render();
+  }
   card.append(el('p', 'signal', 'BADGES: ' + ((c.badges || []).join(' / ') || 'None assigned')));
   // Evidence-replay forensics: downloadable signed bundle.
   const ev = el('a', 'button ghost', 'DOWNLOAD SIGNED EVIDENCE (JSON)');
