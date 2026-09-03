@@ -76,7 +76,7 @@ check('download link has no network URL', links.at(-1).href.startsWith('data:ima
 check('incomplete evidence never claims a verified signature', await hasVerifiedSignature({ algorithm: 'Ed25519' }) === false);
 
 const source = readFileSync(join(here, '../public/certificate.js'), 'utf8');
-const page = readFileSync(join(here, '../public/scorecard.html'), 'utf8');
+const page = readFileSync(join(here, '../public/scorecard.js'), 'utf8');
 const bundled = (await import('../functions/scorecards/scorecard-html.js')).default;
 const css = readFileSync(join(here, '../public/styles.css'), 'utf8');
 check('certificate is a public browser module', source.includes('document.createElement(\'canvas\')'));
@@ -88,8 +88,8 @@ check('certificate pins the published Ed25519 public key', source.includes('17f8
 check('scorecard imports the certificate module', page.includes("from '/certificate.js'"));
 check('scorecard has DOWNLOAD CARD button next to share action', page.includes("'DOWNLOAD CARD'") && page.indexOf("card.append(share)") < page.indexOf("card.append(downloadCard)"));
 check('button handler verifies evidence before drawing', page.includes('await hasVerifiedSignature(evidenceBundle)') && page.includes('downloadResistanceCertificate('));
-check('OG scorecard bundle stays synchronized', bundled === page);
-check('OG scorecard bundle includes certificate wiring', bundled.includes("from '/certificate.js'") && bundled.includes("'DOWNLOAD CARD'"));
+check('OG scorecard bundle stays synchronized', bundled === readFileSync(join(here, '../public/scorecard.html'), 'utf8'));
+check('OG scorecard bundle includes certificate wiring', bundled.includes('src=\"/scorecard.js\"'));
 check('timeline CSS retains the certificate palette source colors', css.includes('#c5ff5f') && css.includes('#ff6b6b') && css.includes('#161d29'));
 
 globalThis.document = oldDocument;

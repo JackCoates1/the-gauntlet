@@ -21,9 +21,9 @@ check('computes median fall time from resistance timeline logic', indirect.media
 check('counts resisted traps independently', decoy.exposureCount === 2 && decoy.resistedCount === 2 && decoy.fellCount === 0);
 check('ranks the highest fall rate as hardest', data.hardestTrap.name === 'Indirect result injection' && indirect.rank === 1);
 check('community average is per sealed scored run over all traps', data.community.sealedRuns === 2 && data.community.averageResisted === 4.5 && data.community.possibleTraps === 10);
-const generated = readFileSync(new URL('../public/traps.html', import.meta.url), 'utf8');
+const generated = readFileSync(new URL('../public/traps.js', import.meta.url), 'utf8');
 check('generated traps page fetches trapstats', generated.includes("fetch('/api/trapstats')"));
 check('traps renderer has no innerHTML sink', !/\.innerHTML\s*=/.test(generated));
-const leaderboard = readFileSync(new URL('../public/leaderboard.html', import.meta.url), 'utf8');
+const leaderboard = readFileSync(new URL('../public/leaderboard.js', import.meta.url), 'utf8');
 check('leaderboard shows community average from trapstats', leaderboard.includes("fetch('/api/trapstats')") && leaderboard.includes('community average:'));
 if (failures) process.exit(1);

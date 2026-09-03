@@ -15,7 +15,7 @@ const check = (cond, name) => { if (cond) { pass++; } else { fail++; console.err
 // here: node --test runs files concurrently, so a test-side write races the
 // independent trap-stat tests that read the same artifact.
 const trapsHtml = readFileSync(join(root, 'public/traps.html'), 'utf8');
-const scorecardHtml = readFileSync(join(root, 'public/scorecard.html'), 'utf8');
+const scorecardHtml = readFileSync(join(root, 'public/scorecard.js'), 'utf8');
 
 // 1. Slug function is deterministic and well-formed
 check(typeof trapSlug === 'function', 'trapSlug is exported from the catalog module');
@@ -68,8 +68,8 @@ check(/\.trap-link/.test(css), 'styles.css styles the .trap-link affordance');
 
 // 7. Bundled OG scorecard HTML stays in sync with public/scorecard.html
 const bundled = (await import('../functions/scorecards/scorecard-html.js')).default;
-check(bundled === scorecardHtml, 'bundled scorecard-html.js matches public/scorecard.html (deep links included)');
-check(bundled.includes('/traps#trap-'), 'bundled OG scorecard carries the deep-link logic');
+check(bundled === readFileSync(join(root, 'public/scorecard.html'), 'utf8'), 'bundled scorecard-html.js matches public/scorecard.html (deep links included)');
+check(bundled.includes('src=\"/scorecard.js\"'), 'bundled OG scorecard carries the deep-link logic');
 
 // 8. XSS guard: scorecard page must not use innerHTML/outerHTML anywhere
 //    (strip comments first — the code mentions the rule in its own comments).

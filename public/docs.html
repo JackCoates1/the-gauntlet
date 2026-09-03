@@ -5,34 +5,20 @@
   <meta name="description" content="The Gauntlet public API: ingest events, seal scorecards, fetch signed evidence, verify offline." />
   <meta name="theme-color" content="#070a10" /><title>The Gauntlet — API Documentation</title>
   <link rel="stylesheet" href="/styles.css" />
-  <style>
-    .doc section.epi { border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:24px; margin:18px 0; }
-    .doc code.inline { background:rgba(110,168,32,.12); border:1px solid rgba(110,168,32,.25); border-radius:4px; padding:1px 6px; font-size:.85em; color:#b8d96a; }
-    .doc pre { background:#0a0e16; border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:14px 16px; overflow-x:auto; font-size:13px; line-height:1.55; color:#c8d3e0; margin:12px 0; }
-    .doc pre b { color:#6ea820; font-weight:600; }
-    .doc table { border-collapse:collapse; width:100%; margin:12px 0; font-size:14px; }
-    .doc th,.doc td { border:1px solid rgba(255,255,255,.1); padding:8px 12px; text-align:left; color:#c8d3e0; }
-    .doc th { color:#6ea820; font-weight:600; }
-    .doc .method { display:inline-block; font-weight:700; font-size:12px; letter-spacing:.08em; padding:2px 8px; border-radius:4px; margin-right:8px; }
-    .doc .m-post { background:rgba(110,168,32,.18); color:#9fc84d; }
-    .doc .m-get { background:rgba(80,140,220,.18); color:#7db0e8; }
-    .doc .path { font-family:monospace; font-size:15px; color:#e8edf4; }
-    .doc .warn { color:#e8a44d; }
-    .doc .ok { color:#6ea820; }
-  </style>
+  <link rel="stylesheet" href="/docs.css" />
 </head>
 <body>
   <div class="noise"></div><main class="doc">
     <nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/digest">RESEARCH</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav>
 
-    <section class="hero" style="padding:48px 0 24px">
+    <section class="hero doc-hero">
       <div class="eyebrow">PUBLIC API / JUDGE &amp; INTEGRATOR GUIDE</div>
       <h1>Drive the range.<br/><em>Verify the evidence.</em></h1>
       <p class="lede">The Gauntlet is an embeddable WebMCP security range with a small, fully public JSON API. Ingest an agent's tool-call trace, seal it into a signed scorecard, then fetch hash-chained evidence and verify it offline with the published Ed25519 public key. No API keys — the base URL is <code class="inline">https://gauntlet.jackcoates.co.uk</code>.</p>
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">Rate limits &amp; fair use</h2>
+      <h2 class="section-title">Rate limits &amp; fair use</h2>
       <table>
         <tr><th>Scope</th><th>Limit</th><th>Window</th><th>Over limit</th></tr>
         <tr><td>Event ingest (<code class="inline">POST /api/events</code>)</td><td>30 per IP</td><td>1 minute (sliding)</td><td><code class="inline">429</code> + <code class="inline">Retry-After</code> (seconds)</td></tr>
@@ -42,7 +28,7 @@
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">POST /api/events — ingest a tool call</h2>
+      <h2 class="section-title">POST /api/events — ingest a tool call</h2>
       <p><span class="method m-post">POST</span><span class="path">/api/events</span></p>
       <p>Records one tool invocation into the run's server-side evidence ledger. A run is a UUID you generate; events are appended in arrival order and are <b>immutable</b> — the scorecard is computed from this ledger only, never from client-supplied traces.</p>
       <pre><b>Request</b>
@@ -66,7 +52,7 @@
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">POST /api/scorecards/:id — seal a run</h2>
+      <h2 class="section-title">POST /api/scorecards/:id — seal a run</h2>
       <p><span class="method m-post">POST</span><span class="path">/api/scorecards/:runId</span></p>
       <p>Computes the scorecard from the server-side ledger and signs it with Ed25519 at seal time. Idempotent: re-sealing returns the original card, never a re-score.</p>
       <p><b class="warn">Proof-of-interaction requirements.</b> A seal is rejected with <code class="inline">422</code> unless the event chain:</p>
@@ -99,14 +85,14 @@
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">GET /api/scorecards/:id — fetch a scorecard</h2>
+      <h2 class="section-title">GET /api/scorecards/:id — fetch a scorecard</h2>
       <p><span class="method m-get">GET</span><span class="path">/api/scorecards/:runId</span></p>
       <pre><b>Response 200</b> — the stored scorecard JSON (same shape as the seal response, without <code class="inline">verified</code>)
 <b>Response 404</b> — { "error": "Run not found" }</pre>
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">GET /api/scorecards/:id/evidence — signed evidence bundle</h2>
+      <h2 class="section-title">GET /api/scorecards/:id/evidence — signed evidence bundle</h2>
       <p><span class="method m-get">GET</span><span class="path">/api/scorecards/:runId/evidence</span></p>
       <p>Returns the full forensics bundle: a hash-chained replay of every event, the canonical signed payload, the scorecard, the public key, and a per-trap resistance timeline.</p>
       <pre><b>Response 200</b>
@@ -129,7 +115,7 @@
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">GET /api/leaderboard — verified leaderboard</h2>
+      <h2 class="section-title">GET /api/leaderboard — verified leaderboard</h2>
       <p><span class="method m-get">GET</span><span class="path">/api/leaderboard?limit=20&amp;verified=1</span></p>
       <pre><b>Response 200</b>
 {
@@ -145,7 +131,7 @@
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">GET /api/digest — research digest</h2>
+      <h2 class="section-title">GET /api/digest — research digest</h2>
       <p><span class="method m-get">GET</span><span class="path">/api/digest</span></p>
       <p>Aggregates every sealed run into per-fingerprint susceptibility cards. <code class="inline">verifiedRuns</code> counts only signature-verified runs.</p>
       <pre><b>Response 200</b>
@@ -157,7 +143,7 @@
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">GET /api/trapstats — community resistance leaderboard</h2>
+      <h2 class="section-title">GET /api/trapstats — community resistance leaderboard</h2>
       <p><span class="method m-get">GET</span><span class="path">/api/trapstats</span></p>
       <p>Aggregates every scored sealed ledger using the same exposure and violation predicates as the scorer. Traps are ranked by fall rate; durations are median first-exposure-to-resist/fall time.</p>
       <pre><b>Response 200</b>
@@ -168,7 +154,7 @@
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">Other assets</h2>
+      <h2 class="section-title">Other assets</h2>
       <table>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/leaderboard.csv?limit=50&amp;verified=0</span></td><td>CSV download of sealed runs and per-trap outcomes, verification flags, fall rates, and durations.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/digest.csv</span></td><td>CSV download of fingerprint-level per-trap susceptibility, verification totals, and median durations.</td></tr>
@@ -179,7 +165,7 @@
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">End-to-end walkthrough (copy &amp; paste)</h2>
+      <h2 class="section-title">End-to-end walkthrough (copy &amp; paste)</h2>
       <p>Minimal curl session: ingest a paced, plausible run → seal it → fetch evidence → verify offline. Bash 4+, <code class="inline">openssl</code>, <code class="inline">python3</code> and <code class="inline">node</code> (≥18) required for the verification step.</p>
       <pre><b>BASE=https://gauntlet.jackcoates.co.uk
 RUN=$(python3 -c 'import uuid;print(uuid.uuid4())')
@@ -232,7 +218,7 @@ echo "Badge:     $BASE/api/badge/$RUN.svg"</pre>
     </section>
 
     <section class="epi">
-      <h2 style="margin-top:0">Embedding the trap library</h2>
+      <h2 class="section-title">Embedding the trap library</h2>
       <p>The same trap definitions and scoring engine that power this API ship as a dependency-free ES module you can run against your own WebMCP tool surface: <a href="https://github.com/JackCoates1/the-gauntlet/blob/main/embed/gauntlet-traps/traps.mjs" target="_blank" rel="noreferrer"><code class="inline">embed/gauntlet-traps/traps.mjs</code></a>. Usage and install instructions are in the <a href="https://github.com/JackCoates1/the-gauntlet/tree/main/embed/gauntlet-traps" target="_blank" rel="noreferrer">module README ↗</a>. Events you log with the library's tool names are exactly what this API accepts, so a locally-embedded range and a hosted run produce comparable evidence.</p>
     </section>
 

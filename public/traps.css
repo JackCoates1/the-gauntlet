@@ -1,0 +1,14 @@
+.doc section.epi { border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:24px; margin:18px 0; }
+    .doc h2 { color:#e8edf4; margin:0 0 8px; }
+    .doc .lede { color:#c8d3e0; }
+    .doc p { color:#aab6c6; line-height:1.6; margin:8px 0; }
+    .doc b.ok { color:#6ea820; } .doc b.warn { color:#e8a44d; }
+    .doc .muted { color:#8a94a6; font-size:.92em; }
+    .trap-stats { display:grid; gap:10px; }
+    .trap-stat { display:grid; grid-template-columns:32px minmax(120px,1fr) minmax(120px,2fr) auto; align-items:center; gap:10px; color:#c8d3e0; font-size:.9rem; }
+    .trap-stat-bar { height:8px; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.08); }
+    .trap-stat-bar { accent-color:#e05b54; }
+    .trap-stat-meta { color:#8a94a6; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    @media (max-width:620px) { .trap-stat { grid-template-columns:28px 1fr auto; } .trap-stat-bar { grid-column:2 / -1; } }
+.doc-hero { padding:48px 0 24px; }
+.trap-lede { max-width:640px; }

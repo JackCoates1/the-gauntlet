@@ -55,7 +55,7 @@ for (const t of TRAP_DEFS) {
 
 // 5. XSS safety: catalog cards are generated server-side; the aggregate panel
 //    is a textContent-only module so it can refresh as new runs arrive.
-check(html.includes("fetch('/api/trapstats')"), 'traps page loads live resistance statistics');
+check(html.includes('src="/traps.js"') && readFileSync(join(root, 'public/traps.js'), 'utf8').includes("fetch('/api/trapstats')"), 'traps page loads live resistance statistics');
 check(!/\.innerHTML\s*=/.test(html), 'traps runtime renderer has no innerHTML sink');
 check(html.includes('same catalog module the range scores with'), 'traps page explains single source of truth');
 check(html.includes('WHAT WE CHECK'), 'traps page labels the detection predicate');

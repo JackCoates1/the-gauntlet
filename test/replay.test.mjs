@@ -57,7 +57,7 @@ check('argument formatter produces legible JSON', formatReplayArgs({ path: '/etc
 check('argument formatter tolerates circular hostile objects', formatReplayArgs((() => { const x = {}; x.x = x; return x; })()) === '[unserializable args]');
 
 // ---- page wiring, XSS guard, CSS, and generated OG variant ----
-const scorecard = readFileSync(join(here, '../public/scorecard.html'), 'utf8');
+const scorecard = readFileSync(join(here, '../public/scorecard.js'), 'utf8');
 const bundled = (await import('../functions/scorecards/scorecard-html.js')).default;
 const css = readFileSync(join(here, '../public/styles.css'), 'utf8');
 check('scorecard fetches evidence only once for timeline and replay', (scorecard.match(/\/evidence/g) || []).length === 2); // endpoint + download link
@@ -71,8 +71,8 @@ check('replay helper is a static public client module', scorecard.includes("from
 check('scorecard reads a static query-string run ID', scorecard.includes("new URLSearchParams(location.search).get('id')"));
 check('scorecard reads the shareable OG path run ID', scorecard.includes("/^\\/scorecards\\/([0-9a-f-]{36})$/i.exec(location.pathname)"));
 check('replay styles include pending/resisted/fell states', ['.replay-pending', '.replay-resisted', '.replay-fell', '.replay-scrub'].every(rule => css.includes(rule)));
-check('generated OG scorecard bundle is synchronized', bundled === scorecard);
-check('OG scorecard variant contains replay wiring', bundled.includes('TAMPER-EVIDENT REPLAY') && bundled.includes("from '/replay.js'"));
+check('generated OG scorecard bundle is synchronized', bundled === readFileSync(join(here, '../public/scorecard.html'), 'utf8'));
+check('OG scorecard variant contains replay wiring', bundled.includes('src=\"/scorecard.js\"'));
 
 if (failures) { console.log(`\n${failures} failure(s)`); process.exit(1); }
 console.log('\nall replay tests passed');

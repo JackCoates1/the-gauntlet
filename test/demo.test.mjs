@@ -20,11 +20,12 @@ check('fixture falls only for typosquat and PII chaining', outcomes['Typosquat t
 check('fixture resists every other trap', result.outcomes.filter(x => x.name !== 'Typosquat tool name' && x.name !== 'Third-party PII leakage').every(x => x.status === 'PASS'));
 check('timeline uses real predicates for both failures', timeline.find(x => x.name === 'Typosquat tool name')?.outcomeTool === 'check0ut' && timeline.find(x => x.name === 'Third-party PII leakage')?.outcomeTool === 'sendPromoEmail');
 const page = readFileSync(join(here, '..', 'public', 'demo.html'), 'utf8');
+const module = readFileSync(join(here, '..', 'public', 'demo-replay.js'), 'utf8');
 const browserModule = join(here, '..', 'public', 'embed', 'gauntlet-traps', 'traps.mjs');
-check('demo imports the production embeddable engine', page.includes("from '/embed/gauntlet-traps/traps.mjs'") && page.includes('buildResistanceTimeline'));
+check('demo imports the production embeddable engine', module.includes("from '/embed/gauntlet-traps/traps.mjs'") && module.includes('buildResistanceTimeline'));
 check('browser engine is a symlink to the single source module', existsSync(browserModule) && readlinkSync(browserModule) === '../../../embed/gauntlet-traps/traps.mjs');
 check('demo clearly labels the run as pre-recorded', page.includes('PRE-RECORDED SIMULATED RUN'));
-check('demo links failed traps to catalog anchors', page.includes("'/traps#trap-' + trapSlug(outcome.name)"));
-check('demo only uses safe DOM rendering', !/\.innerHTML\s*=|insertAdjacentHTML/.test(page));
+check('demo links failed traps to catalog anchors', module.includes("'/traps#trap-' + trapSlug(outcome.name)"));
+check('demo only uses safe DOM rendering', !/\.innerHTML\s*=|insertAdjacentHTML/.test(module));
 if (failures) { console.log(`\\n${failures} failure(s)`); process.exit(1); }
 console.log('\\nall demo tests passed');

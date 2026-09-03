@@ -26,29 +26,16 @@ const html = `<!doctype html>
   <meta name="description" content="The Gauntlet trap catalog: all ten WebMCP tool-surface traps, their attack classes (OWASP LLM Top 10 2025 / MITRE ATLAS), and the exact detection predicate used to score each one." />
   <meta name="theme-color" content="#070a10" /><title>The Gauntlet — Trap Catalog</title>
   <link rel="stylesheet" href="/styles.css" />
-  <style>
-    .doc section.epi { border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:24px; margin:18px 0; }
-    .doc h2 { color:#e8edf4; margin:0 0 8px; }
-    .doc .lede { color:#c8d3e0; }
-    .doc p { color:#aab6c6; line-height:1.6; margin:8px 0; }
-    .doc b.ok { color:#6ea820; } .doc b.warn { color:#e8a44d; }
-    .doc .muted { color:#8a94a6; font-size:.92em; }
-    .trap-stats { display:grid; gap:10px; }
-    .trap-stat { display:grid; grid-template-columns:32px minmax(120px,1fr) minmax(120px,2fr) auto; align-items:center; gap:10px; color:#c8d3e0; font-size:.9rem; }
-    .trap-stat-bar { height:8px; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.08); }
-    .trap-stat-bar > span { display:block; height:100%; background:#e05b54; }
-    .trap-stat-meta { color:#8a94a6; white-space:nowrap; font-variant-numeric:tabular-nums; }
-    @media (max-width:620px) { .trap-stat { grid-template-columns:28px 1fr auto; } .trap-stat-bar { grid-column:2 / -1; } }
-  </style>
+  <link rel="stylesheet" href="/traps.css" />
 </head>
 <body>
   <div class="noise"></div><main class="doc">
     <nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/digest">RESEARCH</a><a href="/docs">API DOCS</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav>
 
-    <section class="hero" style="padding:48px 0 24px">
+    <section class="hero doc-hero">
       <div class="eyebrow">THREAT MODEL / FULL TRAP CATALOG</div>
       <h1>Know the traps<br/><em>before you run.</em></h1>
-      <p class="lede" style="max-width:640px">Every trap in the range, published in full. Each card shows the honest-tool behaviour we expect versus the malicious surface being dangled, the real attack-pattern class it represents, and the exact predicate the scorer applies. Generated from the same catalog module the range scores with — <code class="inline">embed/gauntlet-traps/traps.mjs</code> — so this page can never drift from what actually runs.</p>
+      <p class="lede trap-lede">Every trap in the range, published in full. Each card shows the honest-tool behaviour we expect versus the malicious surface being dangled, the real attack-pattern class it represents, and the exact predicate the scorer applies. Generated from the same catalog module the range scores with — <code class="inline">embed/gauntlet-traps/traps.mjs</code> — so this page can never drift from what actually runs.</p>
     </section>
 ${cards}
 
@@ -66,27 +53,7 @@ ${cards}
     </section>
 
     <footer><span>THE GAUNTLET / PUBLIC SECURITY RANGE</span></footer>
-  </main><script type="module">
-const make = (tag, className, value) => { const node = document.createElement(tag); if (className) node.className = className; if (value !== undefined) node.textContent = value; return node; };
-const list = document.querySelector('#trapStats');
-const summary = document.querySelector('#trapStatsSummary');
-try {
-  const response = await fetch('/api/trapstats');
-  if (!response.ok) throw new Error('Resistance statistics are unavailable.');
-  const data = await response.json();
-  if (!data.community.sealedRuns) { summary.textContent = 'No scored sealed runs yet — complete the range to establish the first baseline.'; }
-  else {
-    summary.textContent = 'Across ' + data.community.sealedRuns + ' sealed run' + (data.community.sealedRuns === 1 ? '' : 's') + ', the community resists ' + data.community.averageResisted + '/' + data.community.possibleTraps + ' traps on average. Ranked by fall rate among exposures.';
-    for (const trap of data.traps.filter(t => t.exposureCount)) {
-      const row = make('div', 'trap-stat');
-      row.append(make('b', '', '#' + trap.rank), make('span', '', trap.name));
-      const bar = make('div', 'trap-stat-bar'); const fill = make('span'); fill.style.width = trap.fallRatePct + '%'; bar.append(fill);
-      row.append(bar, make('span', 'trap-stat-meta', trap.fallRatePct + '% fell · ' + trap.exposureCount + ' exposed · median ' + trap.medianSeconds + 's'));
-      list.append(row);
-    }
-  }
-} catch (error) { summary.textContent = error.message || 'Resistance statistics are unavailable.'; }
-</script>
+  </main><script type="module" src="/traps.js"></script>
 </body>
 </html>
 `;

@@ -17,9 +17,10 @@ check('OG reuses existing banner', tags.includes('/og-banner.png'));
 check('OG tags trim trailing origin slash', !tags.includes('co.uk//'));
 check('fallback has comparison title', buildCompareFallbackOgTags('https://x.test').includes('run comparison'));
 
-const html = readFileSync(join(here, '../public/compare.html'), 'utf8');
+const html = readFileSync(join(here, '../public/compare.js'), 'utf8');
+const shell = readFileSync(join(here, '../public/compare.html'), 'utf8');
 const bundled = (await import('../functions/compare/compare-html.js')).default;
-check('bundled comparison HTML matches public source', bundled === html);
+check('bundled comparison HTML matches public source', bundled === shell);
 check('comparison fetches both existing evidence endpoints', html.includes("'/evidence'") && html.includes('Promise.all([load(aId), load(bId)])'));
 check('comparison renders aligned trap rows and resistance timelines', html.includes('compare-row') && html.includes('compare-timeline') && html.includes('resistanceTimeline'));
 check('comparison creates the requested resist/fell delta', html.includes('resisted ') && html.includes('fell after '));
@@ -36,7 +37,7 @@ check('OG tags precede closing head', body.indexOf('og:title') < body.indexOf('<
 const invalid = await onRequestGet({ params: { a: 'bad', b: b.id }, env: fakeEnv, request: new Request('https://x.test/compare/bad/' + b.id) });
 check('invalid path gets branded fallback without DB access', (await invalid.text()).includes('run comparison'));
 const index = await onCompareIndex();
-check('query-string /compare handler serves the static comparison UI', index.status === 200 && (await index.text()).includes('Promise.all([load(aId), load(bId)])'));
+check('query-string /compare handler serves the static comparison UI', index.status === 200 && (await index.text()).includes('src=\"/compare.js\"'));
 
 if (failures) process.exit(1);
 console.log('\nall comparison tests passed');

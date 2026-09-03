@@ -66,9 +66,9 @@ check('fallback og:title present', fb.includes('content="The Gauntlet — agent 
 check('fallback og:image present', fb.includes('/og-banner.png'));
 
 // ---- bundled HTML stays in sync with public/scorecard.html ----
-const publicHtml = readFileSync(join(here, '../public/scorecard.html'), 'utf8');
+const publicHtml = readFileSync(join(here, '../public/scorecard.js'), 'utf8');
 const bundled = (await import('../functions/scorecards/scorecard-html.js')).default;
-check('bundled scorecard-html matches public/scorecard.html', bundled === publicHtml);
+check('bundled scorecard-html matches public/scorecard.html', bundled === readFileSync(join(here, '../public/scorecard.html'), 'utf8'));
 check('scorecard page has SHARE RESULT button', publicHtml.includes("'SHARE RESULT'"));
 check('share uses navigator.share', publicHtml.includes('navigator.share'));
 check('share has clipboard fallback', publicHtml.includes('navigator.clipboard.writeText(shareUrl)'));
@@ -89,7 +89,7 @@ const body = await res.text();
 check('onRequestGet returns 200 html', res.status === 200 && res.headers.get('content-type').includes('text/html'));
 check('response contains og:title', body.includes('og:title'));
 check('tags injected before </head>', body.indexOf('og:title') < body.indexOf('</head>'));
-check('body still contains app script', body.includes("new URLSearchParams(location.search)"));
+check('body still contains app script', body.includes('src=\"/scorecard.js\"'));
 
 // unknown id → fallback tags still injected
 const fakeEnvMiss = { GAUNTLET_DB: { prepare() { return { bind() { return { async first() { return null; } }; } }; } } };

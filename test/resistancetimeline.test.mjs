@@ -103,9 +103,9 @@ const verdict = await verifyBundle(signed);
 check('verifyBundle ok with resistanceTimeline present', verdict.ok === true, verdict.reason);
 
 // ---- bundled HTML stays in sync + contains the strip markup ----
-const publicHtml = readFileSync(join(here, '..', 'public', 'scorecard.html'), 'utf8');
+const publicHtml = readFileSync(join(here, '..', 'public', 'scorecard.js'), 'utf8');
 const bundled = (await import('../functions/scorecards/scorecard-html.js')).default;
-check('bundled scorecard-html matches public/scorecard.html', bundled === publicHtml);
+check('bundled scorecard-html matches public/scorecard.html', bundled === readFileSync(join(here, '..', 'public', 'scorecard.html'), 'utf8'));
 check('scorecard page renders the timeline strip', publicHtml.includes('RESISTANCE TIMELINE') && publicHtml.includes('tl-strip'));
 check('timeline labels never use innerHTML', !/<[^>]*innerhtml|\.innerHTML\s*=/.test(publicHtml));
 

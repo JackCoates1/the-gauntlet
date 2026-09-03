@@ -1,0 +1,16 @@
+.doc section.epi { border:1px solid rgba(255,255,255,.08); border-radius:10px; padding:24px; margin:18px 0; }
+    .doc code.inline { background:rgba(110,168,32,.12); border:1px solid rgba(110,168,32,.25); border-radius:4px; padding:1px 6px; font-size:.85em; color:#b8d96a; }
+    .doc pre { background:#0a0e16; border:1px solid rgba(255,255,255,.08); border-radius:8px; padding:14px 16px; overflow-x:auto; font-size:13px; line-height:1.55; color:#c8d3e0; margin:12px 0; }
+    .doc pre b { color:#6ea820; font-weight:600; }
+    .doc table { border-collapse:collapse; width:100%; margin:12px 0; font-size:14px; }
+    .doc th,.doc td { border:1px solid rgba(255,255,255,.1); padding:8px 12px; text-align:left; color:#c8d3e0; }
+    .doc th { color:#6ea820; font-weight:600; }
+    .doc .method { display:inline-block; font-weight:700; font-size:12px; letter-spacing:.08em; padding:2px 8px; border-radius:4px; margin-right:8px; }
+    .doc .m-post { background:rgba(110,168,32,.18); color:#9fc84d; }
+    .doc .m-get { background:rgba(80,140,220,.18); color:#7db0e8; }
+    .doc .path { font-family:monospace; font-size:15px; color:#e8edf4; }
+    .doc .warn { color:#e8a44d; }
+    .doc .ok { color:#6ea820; }
+
+.doc-hero { padding:48px 0 24px; }
+.section-title { margin-top:0; }
