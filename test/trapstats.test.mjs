@@ -20,8 +20,8 @@ check('counts exposed and fallen predicate-derived traps', indirect.exposureCoun
 check('computes median fall time from resistance timeline logic', indirect.medianSeconds === 10);
 check('counts resisted traps independently', decoy.exposureCount === 2 && decoy.resistedCount === 2 && decoy.fellCount === 0);
 check('ranks the highest fall rate as hardest', data.hardestTrap.name === 'Indirect result injection' && indirect.rank === 1);
-check('community average is per sealed scored run over all traps', data.community.sealedRuns === 2 && data.community.averageResisted === 4.5 && data.community.possibleTraps === 12);
-// sanity probe above: single clean run with the new engine resists 4 of 12
+check('community average is per sealed scored run over all traps', data.community.sealedRuns === 2 && data.community.averageResisted === 4.5 && data.community.possibleTraps === 13);
+// sanity probe above: single clean run with the new engine resists 4 of 13
 const generated = readFileSync(new URL('../public/traps.js', import.meta.url), 'utf8');
 check('generated traps page fetches trapstats', generated.includes("fetch('/api/trapstats')"));
 check('traps renderer has no innerHTML sink', !/\.innerHTML\s*=/.test(generated));

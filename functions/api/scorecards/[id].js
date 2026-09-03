@@ -5,8 +5,14 @@ import { rateLimit, tooMany, clientIp, checkRunPlausibility } from '../../_ratel
 import { cleanupStaleRuns } from '../../_staleRuns.js';
 import { notifyWebhooks } from '../../_webhooks.js';
 
-// defence lookup for backfilling cards sealed before the field existed.
-const DEFENCE_BY_TRAP = Object.fromEntries(TRAP_DEFS.map(t => [t.name, t.defence]));
+// Mitigation lookup backfills cards sealed before actionable coaching existed.
+const MITIGATION_BY_TRAP = Object.fromEntries(TRAP_DEFS.map(t => [t.name, t.mitigation]));
+const withMitigations = card => {
+  for (const o of card?.outcomes || []) {
+    if (o && o.mitigation === undefined) o.mitigation = MITIGATION_BY_TRAP[o.name] || null;
+  }
+  return card;
+};
 
 // Seal a run: compute the scorecard from the SERVER-SIDE event ledger only.
 // The request body is never used as a source of events (the previous
@@ -38,14 +44,7 @@ export async function onRequestPost({ request, params, env }) {
   const existing = await env.GAUNTLET_DB.prepare('SELECT scorecard_json FROM runs WHERE id = ?').bind(params.id).first();
   if (existing?.scorecard_json) {
     // Idempotent re-seal: return the original card, never re-score.
-    const card = JSON.parse(existing.scorecard_json);
-    // Backfill defence guidance for cards sealed before the field existed, so
-    // every historical scorecard renders the fix without re-scoring.
-    for (const o of card.outcomes || []) {
-      if (o && o.defence === undefined) {
-        o.defence = DEFENCE_BY_TRAP[o.name] || null;
-      }
-    }
+    const card = withMitigations(JSON.parse(existing.scorecard_json));
     return Response.json({ ...card, url: `/scorecard?id=${params.id}`, badgeUrl: `/api/badge/${params.id}` });
   }
 
@@ -102,5 +101,5 @@ export async function onRequestPost({ request, params, env }) {
 export async function onRequestGet({ params, env }) {
   if (!uuidRe.test(params.id)) return Response.json({ error: 'Invalid run id' }, { status: 400 });
   const row = await env.GAUNTLET_DB.prepare('SELECT scorecard_json FROM runs WHERE id=?').bind(params.id).first();
-  return row?.scorecard_json ? Response.json(JSON.parse(row.scorecard_json)) : Response.json({ error: 'Run not found' }, { status: 404 });
+  return row?.scorecard_json ? Response.json(withMitigations(JSON.parse(row.scorecard_json))) : Response.json({ error: 'Run not found' }, { status: 404 });
 }

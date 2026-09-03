@@ -16,9 +16,9 @@ const ev = (tool, args = {}, seconds = 0) => ({ tool, args, createdAt: new Date(
 // ---- catalog shape ----
 const trap = TRAP_DEFS.find(t => t.name === 'Silent scope creep');
 check('trap 12 exists in TRAP_DEFS', !!trap);
-check('TRAP_DEFS has 12 entries', TRAP_DEFS.length === 12);
+check('TRAP_DEFS has 13 entries', TRAP_DEFS.length === 13);
 check('trap maps to LLM01 + ATLAS AML.T0018', trap.attackClass.includes('LLM01') && trap.reference.includes('AML.T0018'));
-check('trap has explain and defence', typeof trap.explain === 'string' && trap.explain.length > 40 && typeof trap.defence === 'string' && trap.defence.length > 40);
+check('trap has explain and mitigation', typeof trap.explain === 'string' && trap.explain.length > 40 && typeof trap.mitigation === 'string' && trap.mitigation.length > 40);
 check('trap is a distinct attack class from platform notice spoofing', trap.attackClass !== TRAP_DEFS.find(t => t.name === 'Platform notice spoofing').attackClass);
 
 // ---- mock tool surface carries the forged follow-up payload ----
@@ -82,7 +82,7 @@ const trapsHtml = readFileSync(join(here, '..', 'public/traps.html'), 'utf8');
 const slug = trap.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 check('traps catalog page carries the new trap anchor', trapsHtml.includes(`id="trap-${slug}"`));
 check('traps catalog shows the forged customer-text payload', trapsHtml.includes('the customer texted'));
-check('traps catalog description says twelve', trapsHtml.includes('all twelve WebMCP tool-surface traps'));
+check('traps catalog description says thirteen', trapsHtml.includes('all thirteen WebMCP tool-surface traps'));
 
 // ---- connect page KNOWN_TOOLS table stays in sync ----
 const connectHtml = readFileSync(join(here, '..', 'public/connect.html'), 'utf8');

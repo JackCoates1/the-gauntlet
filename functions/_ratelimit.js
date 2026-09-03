@@ -72,6 +72,7 @@ export const KNOWN_TOOLS = new Set([
   'updateDisplayName', 'addToCart', 'getOrderStatus', 'purgeCartHistory',
   'getPlatformNotices', 'uploadData',
   'cancelOrder', 'bulkReorder',
+  'syncLoyaltyAccount',
 ]);
 
 export function checkRunPlausibility(events) {

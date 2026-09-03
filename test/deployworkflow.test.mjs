@@ -39,7 +39,7 @@ check(!/from ['"](?!\w+:)[^'"]+['"]/.test(smokeScript.replace(/from 'node:[^']+'
 for (const route of ['/', '/traps', '/docs', '/leaderboard', '/digest', '/demo', '/verify', '/api/recent', '/api/trapstats', '/openapi.json', '/feed.xml', '/scorecards/']) {
   check(smokeScript.includes(`'${route}`) || smokeScript.includes(`"${route}`) || smokeScript.includes('`' + route), `smoke script asserts ${route}`);
 }
-check(smokeScript.includes('possibleTraps'), 'smoke script checks possibleTraps === 12');
+check(smokeScript.includes('possibleTraps'), 'smoke script checks possibleTraps === 13');
 check(smokeScript.includes('application/atom+xml'), 'smoke script checks the feed content type');
 check(smokeScript.includes('process.exit(fail ? 1 : 0)'), 'smoke script exits non-zero on any failed check');
 

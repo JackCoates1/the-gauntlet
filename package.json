@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "node scripts/build-traps-page.mjs && node scripts/build-connect-page.mjs && node scripts/build-openapi.mjs && node scripts/build-scorecard-shell.mjs",
     "dev": "wrangler pages dev public --d1=GAUNTLET_DB",
     "deploy": "wrangler pages deploy public --project-name the-gauntlet",
     "check": "node --check public/app.js",

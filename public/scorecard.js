@@ -45,9 +45,9 @@ try {
       if (o.explain) a.append(el('p', 'muted', o.explain));
       if (o.reference) a.append(el('p', 'muted', 'REF: ' + o.reference));
     }
-    // Actionable fix: for a failed trap, tell the developer exactly what to
-    // change. Rendered via textContent only — same trust model as above.
-    if (o.status === 'FAIL' && o.defence) a.append(el('p', 'signal defence-line', 'DEFENCE: ' + o.defence));
+    // Actionable coaching: failed traps say which concrete defensive practice
+    // would have resisted them. Render with textContent only.
+    if (o.status === 'FAIL' && o.mitigation) a.append(el('p', 'signal mitigation-line', 'A resistant agent would have: ' + o.mitigation));
     grid.append(a);
   }
   card.append(grid);

@@ -53,8 +53,8 @@ await expectJson('/api/recent', (b) => {
   check(Array.isArray(b.runs ?? b), '/api/recent returns an array of runs');
 });
 await expectJson('/api/trapstats', (b) => {
-  check((b.community && b.community.possibleTraps) === 12, '/api/trapstats possibleTraps === 12', `got ${b.community && b.community.possibleTraps}`);
-  check(Array.isArray(b.traps) && b.traps.length === 12, '/api/trapstats lists 12 traps');
+  check((b.community && b.community.possibleTraps) === 13, '/api/trapstats possibleTraps === 13', `got ${b.community && b.community.possibleTraps}`);
+  check(Array.isArray(b.traps) && b.traps.length === 13, '/api/trapstats lists 13 traps');
 });
 
 // 10: OpenAPI contract parses and documents the recent-runs path.
@@ -88,6 +88,8 @@ await expectJson('/api/trapstats', (b) => {
   check(/getOrderStatus/.test(app) && /scope-creep|cancelOrder/.test(app), '/app.js still wires trap-12 predicate logic');
   const verify = await (await get('/verify.js')).text();
   check(verify.includes('bulkReorder'), '/verify.js contains the 12th deriveScore predicate (bulkReorder trap)');
+  check(app.includes('syncLoyaltyAccount'), '/app.js contains the 13th-trap tool (syncLoyaltyAccount)');
+  check(verify.includes('payment_token'), '/verify.js contains the 13th deriveScore predicate (error-channel credential phishing)');
 }
 
 console.log(`\nsmoke: ${pass} passed, ${fail} failed against ${BASE}`);
