@@ -1,5 +1,6 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Gauntlet Scorecard</title><link rel="stylesheet" href="/styles.css"></head><body><main><nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><span class="pill"><b></b> VERIFIED RUN</span></nav><section class="hero" id="card"><div class="eyebrow">SECURITY SCORECARD</div><h1>Loading<br/><em>evidence…</em></h1></section><footer><span>THE GAUNTLET / PUBLIC SECURITY RANGE</span></footer></main><script type="module">
 import { formatReplayArgs, orderReplayEvents, replayDurationMs, replayTrapStates, visibleEventCount } from '/replay.js';
+import { downloadResistanceCertificate, hasVerifiedSignature } from '/certificate.js';
 // All scorecard fields (id, trap names, details, badges) are rendered via
 // textContent / element assignment — never template-string innerHTML — so a
 // hostile run id or any stored field cannot execute script in this page.
@@ -162,6 +163,24 @@ try {
     }
   };
   card.append(share);
+  // A per-run PNG is drawn locally from the sealed card plus the signed
+  // evidence bundle already loaded for the timeline/replay. No image service
+  // or additional API data is involved. Only call the card signature verified
+  // after WebCrypto has checked it against the pinned Gauntlet public key.
+  const downloadCard = el('button', 'ghost', 'DOWNLOAD CARD');
+  downloadCard.onclick = async () => {
+    downloadCard.disabled = true;
+    downloadCard.textContent = 'PREPARING CARD…';
+    try {
+      const signatureVerified = await hasVerifiedSignature(evidenceBundle);
+      downloadResistanceCertificate({ scorecard: c, evidence: { ...evidenceBundle, signatureVerified }, origin: location.origin });
+      downloadCard.textContent = 'CARD DOWNLOADED';
+    } catch {
+      downloadCard.textContent = 'CARD UNAVAILABLE';
+    }
+    setTimeout(() => { downloadCard.disabled = false; downloadCard.textContent = 'DOWNLOAD CARD'; }, 1500);
+  };
+  card.append(downloadCard);
 } catch (e) {
   card.textContent = '';
   card.append(el('div', 'eyebrow', 'SECURITY SCORECARD'), el('h1', '', ''), el('p', 'lede', e.message || 'Scorecard unavailable.'));
