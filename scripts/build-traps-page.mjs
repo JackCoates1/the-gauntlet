@@ -17,6 +17,7 @@ const cards = TRAP_DEFS.map((t, i) => `
       <p><b class="ok">ATTACK CLASS:</b> ${esc(t.attackClass)}</p>
       <p class="muted"><b>REFERENCE:</b> ${esc(t.reference)}</p>
       <p><b class="warn">WHAT WE CHECK:</b> ${esc(t.explain)}</p>
+      <p><b class="ok">DEFENCE:</b> ${esc(t.defence)}</p>
     </section>`).join('\n');
 
 const html = `<!doctype html>
