@@ -116,8 +116,7 @@ const html = `<!doctype html>
   <link rel="stylesheet" href="/docs.css" />
 </head>
 <body>
-  <div class="noise"></div><main class="doc">
-    ${renderNav()}
+  <div class="noise"></div><header>${renderNav()}</header><main class="doc">
 
     <section class="hero doc-hero">
       <div class="eyebrow">QUICKSTART / YOUR AGENT vs THE RANGE</div>

@@ -9,14 +9,13 @@
   <link rel="stylesheet" href="/docs.css" />
 </head>
 <body>
-  <div class="noise"></div><main class="doc">
-    <nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/digest">RESEARCH</a><a href="/traps">TRAPS</a><a href="/connect">RUN YOUR AGENT</a><a href="/docs">API DOCS</a><a href="/verify">VERIFY</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav>
+  <div class="noise"></div><header><nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/digest">RESEARCH</a><a href="/traps">TRAPS</a><a href="/connect">RUN YOUR AGENT</a><a href="/docs">API DOCS</a><a href="/verify">VERIFY</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav></header><main class="doc">
 
     <section class="hero doc-hero">
       <div class="eyebrow">PUBLIC API / JUDGE &amp; INTEGRATOR GUIDE</div>
       <h1>Drive the range.<br/><em>Verify the evidence.</em></h1>
       <p class="lede">The Gauntlet is an embeddable WebMCP security range with a small, fully public JSON API. Ingest an agent's tool-call trace, seal it into a signed scorecard, then fetch hash-chained evidence and verify it offline with the published Ed25519 public key. No API keys — the base URL is <code class="inline">https://gauntlet.jackcoates.co.uk</code>.</p>
-      <p><a class="ghost" href="/openapi.json" download aria-label="Download the OpenAPI 3.1 specification file">↓ Download OpenAPI 3.1 spec</a> <span class="muted">Hackathon judges: import <code class="inline">openapi.json</code> into Postman or Insomnia for ready-made requests and code generation.</span></p>
+      <p class="download-row"><a class="ghost" href="/openapi.json" download aria-label="Download the OpenAPI 3.1 specification file">↓ Download OpenAPI 3.1 spec</a> <span class="muted">Hackathon judges: import <code class="inline">openapi.json</code> into Postman or Insomnia for ready-made requests and code generation.</span></p>
       <p><b>Browser-ready integration.</b> The public API and OpenAPI file send <code class="inline">Access-Control-Allow-Origin: *</code>. Any browser origin may read public JSON/CSV/SVG endpoints; preflight accepts <code class="inline">GET</code> and <code class="inline">POST</code> with <code class="inline">Content-Type: application/json</code>. There are no cookies, API keys, or credentialed cross-origin requests.</p>
     </section>
 

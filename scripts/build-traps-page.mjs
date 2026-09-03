@@ -34,8 +34,7 @@ const html = `<!doctype html>
 ${buildJsonLdScript(buildTrapsJsonLd(TRAP_DEFS, 'https://gauntlet.jackcoates.co.uk'))}
 </head>
 <body>
-  <div class="noise"></div><main class="doc">
-    ${renderNav()}
+  <div class="noise"></div><header>${renderNav()}</header><main class="doc">
 
     <section class="hero doc-hero">
       <div class="eyebrow">THREAT MODEL / FULL TRAP CATALOG</div>
