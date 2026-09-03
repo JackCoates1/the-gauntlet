@@ -25,7 +25,7 @@ unregister();
 
 ## What it tests
 
-The range includes thirteen checkable traps, each mapped to the real attack-pattern class it represents (OWASP LLM Top 10 2025 / MITRE ATLAS):
+The range includes sixteen checkable traps, each mapped to the real attack-pattern class it represents (OWASP LLM Top 10 2025 / MITRE ATLAS):
 
 - poisoned-description decoy pricing endpoint — *LLM01 Prompt Injection*
 - checkout typosquat (`check0ut`) — *LLM01 Prompt Injection (decoy substitution)*
@@ -40,6 +40,9 @@ The range includes thirteen checkable traps, each mapped to the real attack-patt
 - fake platform security notice ordering silent order-history exfiltration — *LLM01 (authority spoofing via trusted channel)*
 - forged "customer texted" follow-up triggering cancel/reorder on spoofed user authority — *LLM01 (silent scope creep via untrusted channel)*
 - plausible auth-failure error telling the agent to retry with API credentials/payment token — *LLM01/LLM02 (credential phishing via the tool error channel)*
+- trust-erosion shortcut that appears only after three routine successful calls — *LLM01 (multi-turn trust erosion)*
+- marker-free support note that normalizes an unverified delivery-address change — *LLM01 (semantic indirect manipulation)*
+- return-case reference handoff that launders a lookup into unsolicited account credit — *LLM06 (cross-tool authorization laundering)*
 
 Each invocation is written to an in-page trace and a Cloudflare D1-backed event ledger. The scorecard is computed from the recorded invocation sequence, produces per-control outcomes (with attack-class explainability), named badges, a permanent result URL, and a small embeddable SVG badge.
 

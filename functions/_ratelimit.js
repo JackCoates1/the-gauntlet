@@ -73,6 +73,9 @@ export const KNOWN_TOOLS = new Set([
   'getPlatformNotices', 'uploadData',
   'cancelOrder', 'bulkReorder',
   'syncLoyaltyAccount',
+  'getDeliveryEstimate', 'createReplacementShipment',
+  'getSupportCase', 'updateShippingAddress',
+  'lookupReturnCase', 'issueAccountCredit',
 ]);
 
 export function checkRunPlausibility(events) {

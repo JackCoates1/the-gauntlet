@@ -51,7 +51,7 @@
 <b>Errors</b>
 400 invalid runId / event · 409 run already sealed · 413 payload too large
 429 event budget exceeded (200/run) or rate limited (30/min, Retry-After header)</pre>
-      <p>Only tool names that exist in the range are accepted at seal time: <code class="inline">sessionStarted</code>, <code class="inline">searchProducts</code>, <code class="inline">getPrice</code>, <code class="inline">getPrice_verified</code>, <code class="inline">addToCart</code>, <code class="inline">checkout</code>, <code class="inline">applyDiscountCode</code>, <code class="inline">check0ut</code>, <code class="inline">getReviews</code>, <code class="inline">sendPromoEmail</code>, <code class="inline">deleteAccount</code>, <code class="inline">exportSessionBackup</code>, <code class="inline">bulkDeleteAllOrders</code>, <code class="inline">updateDisplayName</code>, <code class="inline">getOrderStatus</code>, <code class="inline">cancelOrder</code>, <code class="inline">bulkReorder</code>, <code class="inline">purgeCartHistory</code>, <code class="inline">getPlatformNotices</code>, <code class="inline">uploadData</code>, <code class="inline">syncLoyaltyAccount</code>, <code class="inline">generateScorecard</code>. Events referencing anything else make the run unsealable — by design, since the traps are those tools.</p>
+      <p>Only tool names that exist in the range are accepted at seal time: <code class="inline">sessionStarted</code>, <code class="inline">searchProducts</code>, <code class="inline">getPrice</code>, <code class="inline">getPrice_verified</code>, <code class="inline">addToCart</code>, <code class="inline">checkout</code>, <code class="inline">applyDiscountCode</code>, <code class="inline">check0ut</code>, <code class="inline">getReviews</code>, <code class="inline">sendPromoEmail</code>, <code class="inline">deleteAccount</code>, <code class="inline">exportSessionBackup</code>, <code class="inline">bulkDeleteAllOrders</code>, <code class="inline">updateDisplayName</code>, <code class="inline">getOrderStatus</code>, <code class="inline">cancelOrder</code>, <code class="inline">bulkReorder</code>, <code class="inline">purgeCartHistory</code>, <code class="inline">getPlatformNotices</code>, <code class="inline">uploadData</code>, <code class="inline">syncLoyaltyAccount</code>, <code class="inline">getDeliveryEstimate</code>, <code class="inline">createReplacementShipment</code>, <code class="inline">getSupportCase</code>, <code class="inline">updateShippingAddress</code>, <code class="inline">lookupReturnCase</code>, <code class="inline">issueAccountCredit</code>, <code class="inline">generateScorecard</code>. Events referencing anything else make the run unsealable — by design, since the traps are those tools.</p>
     </section>
 
     <section class="epi">
@@ -181,9 +181,9 @@
     <section class="epi">
       <h2 class="section-title">GET /api/community — verified score distribution</h2>
       <p><span class="method m-get">GET</span><span class="path">/api/community</span></p>
-      <p>Returns a 0–13 histogram for cryptographically verified sealed runs only, plus median and interpolated first/third quartiles. It powers the leaderboard’s community distribution chart.</p>
+      <p>Returns a 0–16 histogram for cryptographically verified sealed runs only, plus median and interpolated first/third quartiles. It powers the leaderboard’s community distribution chart.</p>
       <pre><b>Response 200</b>
-{ "total": 13, "buckets": [{ "score": 0, "count": 0 }, …],
+{ "total": 16, "buckets": [{ "score": 0, "count": 0 }, …],
   "verifiedRuns": 41, "median": 9, "p25": 7, "p75": 11,
   "perfectCount": 5, "perfectPct": 12 }</pre>
     </section>

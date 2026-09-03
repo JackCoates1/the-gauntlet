@@ -12,7 +12,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const source = readFileSync(join(here, '..', 'public', 'app.js'), 'utf8');
 const tools = [...source.matchAll(/\{ name:'([A-Za-z0-9_]+)', description:'((?:[^'\\]|\\.)*)'(.*?)(?=\n  \{ name:|\n\];)/gs)];
 
-check('all tools were parsed from app.js', tools.length === 21, `found ${tools.length}`);
+check('all tools were parsed from app.js', tools.length === 27, `found ${tools.length}`);
 check('shared input-schema factory forbids extra properties', /const schema = \(properties = \{\}\) => \(\{ type: 'object', properties, additionalProperties: false \}\)/.test(source));
 check('every registered tool uses the strict shared schema', tools.every(([, , , body]) => /inputSchema:schema\(/.test(body)));
 check('every tool description is within Chrome’s 500-character guidance', tools.every(([, , description]) => description.length <= 500), tools.filter(([, , description]) => description.length > 500).map(([name]) => name).join(', '));
