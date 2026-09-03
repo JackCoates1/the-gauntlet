@@ -170,6 +170,8 @@
     <section class="epi">
       <h2 style="margin-top:0">Other assets</h2>
       <table>
+        <tr><td><span class="method m-get">GET</span><span class="path">/api/leaderboard.csv?limit=50&amp;verified=0</span></td><td>CSV download of sealed runs and per-trap outcomes, verification flags, fall rates, and durations.</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="path">/api/digest.csv</span></td><td>CSV download of fingerprint-level per-trap susceptibility, verification totals, and median durations.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/badge/:runId.svg</span></td><td>330×28 SVG score badge for embedding in READMEs (1h cache).</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/scorecards/:runId</span></td><td>Shareable scorecard page with Open Graph / Twitter meta tags for unfurls.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/og-banner.png</span></td><td>1200×630 share banner.</td></tr>
