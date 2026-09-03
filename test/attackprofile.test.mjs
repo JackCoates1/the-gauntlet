@@ -45,7 +45,7 @@ globalThis.document = oldDocument;
 const scorecard = readFileSync(join(root, 'public/scorecard.js'), 'utf8');
 const css = readFileSync(join(root, 'public/styles.css'), 'utf8');
 const bundled = (await import('../functions/scorecards/scorecard-html.js')).default;
-check('scorecard derives profile after its evidence timeline', scorecard.includes('renderAttackClassProfile(card, tl, TRAP_DEFS, trapSlug)'));
+check('scorecard derives profile after its evidence timeline', scorecard.includes('renderAttackClassProfile(results, tl, TRAP_DEFS, trapSlug)') && scorecard.lastIndexOf('renderAttackClassProfile') > scorecard.lastIndexOf('results.append(strip)'));
 check('profile renderer has no HTML injection sink', !/innerHTML|outerHTML|document\.write/.test(readFileSync(join(root, 'public/attack-profile.js'), 'utf8')));
 check('profile styling reuses timeline acid and red palette', css.includes('.attack-profile-pass') && css.includes('#c5ff5f') && css.includes('.attack-profile-fail') && css.includes('#ff6b6b'));
 check('OG scorecard shell remains synchronized', bundled === readFileSync(join(root, 'public/scorecard.html'), 'utf8') && bundled.includes('src="/scorecard.js"'));

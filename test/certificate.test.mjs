@@ -86,7 +86,7 @@ check('certificate contains no HTML injection sink', !/\.innerHTML\s*=|innerHTML
 check('certificate does not fetch or post data', !/\bfetch\s*\(|XMLHttpRequest|\.post\(/.test(source));
 check('certificate pins the published Ed25519 public key', source.includes('17f868001b3ad45cc67a069e1115c1e8390debe4ad21add712477d91c857827a'));
 check('scorecard imports the certificate module', page.includes("from '/certificate.js'"));
-check('scorecard has DOWNLOAD CARD button next to share action', page.includes("'DOWNLOAD CARD'") && page.indexOf("card.append(share)") < page.indexOf("card.append(downloadCard)"));
+check('scorecard has DOWNLOAD CARD button next to share action', page.includes("'DOWNLOAD CARD'") && page.indexOf("actionBar.append(share)") < page.indexOf("actionBar.append(downloadCard)"));
 check('button handler verifies evidence before drawing', page.includes('await hasVerifiedSignature(evidenceBundle)') && page.includes('downloadResistanceCertificate('));
 check('OG scorecard bundle stays synchronized', bundled === readFileSync(join(here, '../public/scorecard.html'), 'utf8'));
 check('OG scorecard bundle includes certificate wiring', bundled.includes('src=\"/scorecard.js\"'));
