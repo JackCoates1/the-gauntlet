@@ -135,7 +135,13 @@ try {
         const label = state === 'resisted' ? 'RESISTED, ' + trap.seconds + 's'
           : state === 'fell' ? 'FELL AFTER ' + trap.seconds + 's'
           : state === 'untested' ? 'NOT TESTED' : 'AWAITING';
-        trapBoard.append(el('div', 'replay-trap replay-' + state, trap.name + ' — ' + label));
+        // Compact status chip: one tight cell per trap (name + state) instead
+        // of a full-width row, so the live ledger below stays the visual
+        // primary. Same class contract (replay-<state>) as before — colors
+        // and transitions are unchanged.
+        const chip = el('div', 'replay-chip replay-' + state);
+        chip.append(el('span', 'replay-chip-name', trap.name), el('span', 'replay-chip-state', label));
+        trapBoard.append(chip);
       }
       ledger.textContent = '';
       for (const event of events.slice(0, count)) {
