@@ -30,16 +30,22 @@ try {
     const entries = Object.entries(card.traps).sort((a, b) => (b[1].susceptibilityPct ?? -1) - (a[1].susceptibilityPct ?? -1));
     const overview = el('div', 'digest-overview');
     overview.append(el('div', 'digest-overview-label', 'ATTACK-CLASS RISK OVERVIEW'));
-    const grid = el('div', 'digest-risk-grid');
-    for (const [name, t] of entries) {
+    const risky = entries.filter(([, t]) => (t.susceptibilityPct || 0) > 0);
+    if (!risky.length) {
+      overview.append(el('p', 'digest-empty', `No observed falls across ${entries.length} tested attack classes.`));
+    } else {
+      const grid = el('div', 'digest-risk-grid');
+      for (const [name, t] of risky.slice(0, 4)) {
       const pct = t.susceptibilityPct === null ? 'not tested' : t.susceptibilityPct + '% fell';
       const tested = t.pass + t.fail;
       const cell = el('div', 'digest-risk ' + (t.susceptibilityPct >= 50 ? 'digest-risk-high' : ''));
       const rate = el('b', t.susceptibilityPct >= 50 ? 'fail' : '', pct);
       cell.append(rate, el('span', 'digest-risk-name', name), el('small', 'muted', tested ? `${t.fail}/${tested} fell` : 'no exposures'));
       grid.append(cell);
+      }
+      overview.append(grid);
+      if (risky.length > 4) overview.append(el('p', 'digest-overview-note', `${risky.length - 4} more attack classes with observed falls are in the full breakdown.`));
     }
-    overview.append(grid);
     box.append(overview);
 
     const details = el('details', 'digest-details');

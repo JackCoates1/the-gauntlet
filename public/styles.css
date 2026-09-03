@@ -19,6 +19,7 @@ a.recent-entry:hover .recent-who{color:var(--ink)}
 .digest-metric strong{display:block;color:var(--acid);font:700 21px/1 Manrope;letter-spacing:-.055em}
 .digest-metric span,.digest-overview-label{display:block;margin-top:7px;font:9px/1.35 'DM Mono';letter-spacing:.09em;color:var(--muted)}
 .digest-overview{padding:18px 24px 22px}.digest-overview-label{margin:0 0 11px;color:var(--acid)}
+.digest-empty,.digest-overview-note{margin:0;color:var(--muted);font:11px/1.5 'DM Mono'}.digest-empty{padding:13px 14px;border:1px solid var(--line);background:#090d14}.digest-empty::before{content:'✓ ';color:var(--acid)}.digest-overview-note{margin-top:10px}
 .digest-risk-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1px;border:1px solid var(--line);background:var(--line)}
 .digest-risk{display:grid;grid-template-columns:auto 1fr;grid-template-areas:"rate name" "rate count";gap:3px 10px;align-items:center;padding:11px 12px;background:#090d14;min-width:0}
 .digest-risk b{grid-area:rate;color:var(--acid);font:700 17px/1 'DM Mono';letter-spacing:-.07em;white-space:nowrap}.digest-risk b.fail{color:var(--danger)}
