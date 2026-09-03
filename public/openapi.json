@@ -412,6 +412,137 @@
         }
       }
     },
+    "/api/webhooks": {
+      "post": {
+        "tags": [
+          "Integrations"
+        ],
+        "summary": "Register a signed seal webhook",
+        "description": "Store an https:// callback URL and receive a per-subscriber HMAC-SHA256 signing secret (returned exactly once). Every subsequent successful seal fires a POST containing the run ID, score, verified flag and event-chain root, signed as X-Gauntlet-Signature: t=<unix-ts>,v1=<hex hmac of the unix timestamp, a dot, and the JSON body>. Delivery is fire-and-forget with one retry after a short backoff.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "url"
+                ],
+                "properties": {
+                  "url": {
+                    "type": "string",
+                    "format": "uri",
+                    "description": "https:// callback URL (no credentials, no localhost/private-IP hosts), 12-500 chars."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Registered; signing secret returned once.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookRegistration"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid or non-https URL.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Payload too large.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Webhook registry unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "507": {
+            "description": "Webhook registry is full.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get": {
+        "tags": [
+          "Integrations"
+        ],
+        "summary": "List your registered webhooks by signing secret",
+        "description": "Self-service lookup: pass the hex signing secret you received at registration to list the webhook URLs registered under it. Secrets are never returned.",
+        "parameters": [
+          {
+            "name": "secret",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registered hooks for this secret.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WebhookList"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Missing or malformed secret.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Webhook registry unavailable.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/leaderboard": {
       "get": {
         "tags": [
@@ -1133,6 +1264,59 @@
               "null"
             ],
             "description": "Mean peer score percentage."
+          }
+        }
+      },
+      "WebhookRegistration": {
+        "type": "object",
+        "required": [
+          "ok",
+          "url",
+          "secret"
+        ],
+        "properties": {
+          "ok": {
+            "const": true
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "secret": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{64}$",
+            "description": "HMAC-SHA256 signing secret; returned exactly once at registration."
+          },
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "WebhookList": {
+        "type": "object",
+        "required": [
+          "hooks"
+        ],
+        "properties": {
+          "hooks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "url",
+                "created_at"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string",
+                  "format": "uri"
+                },
+                "created_at": {
+                  "type": "string",
+                  "format": "date-time"
+                }
+              }
+            }
           }
         }
       }

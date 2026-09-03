@@ -1,8 +1,9 @@
 import { evaluate } from '../../_lib.js';
 import { TRAP_DEFS } from '../../../embed/gauntlet-traps/traps.mjs';
-import { sealScorecard } from '../../_evidence.js';
+import { sealScorecard, chainRoot, buildReplay } from '../../_evidence.js';
 import { rateLimit, tooMany, clientIp, checkRunPlausibility } from '../../_ratelimit.js';
 import { cleanupStaleRuns } from '../../_staleRuns.js';
+import { notifyWebhooks } from '../../_webhooks.js';
 
 // defence lookup for backfilling cards sealed before the field existed.
 const DEFENCE_BY_TRAP = Object.fromEntries(TRAP_DEFS.map(t => [t.name, t.defence]));
@@ -73,6 +74,22 @@ export async function onRequestPost({ request, params, env }) {
   // Sign the canonical seal payload (runId + scorecard + event-chain root) at
   // seal time so the leaderboard can later distinguish verified runs.
   const sig = await sealScorecard(params.id, card, events, env.GAUNTLET_SIGNING_KEY || null);
+  const root = await chainRoot(await buildReplay(events));
+
+  // Fire-and-forget signed seal webhooks: push the run ID, score, verified
+  // flag and the same event-chain root used in the seal payload to every
+  // registered subscriber. Never blocks or fails the seal itself.
+  const webhookNotify = notifyWebhooks(env, {
+    event: 'run.sealed',
+    runId: params.id,
+    score: card.score,
+    total: card.total,
+    verified: !!sig,
+    eventsRoot: root,
+    scorecardUrl: `/scorecards/${params.id}`,
+    sealedAt: card.createdAt,
+  });
+  if (typeof waitUntil === 'function') waitUntil(webhookNotify); else webhookNotify.catch(() => {});
 
   await env.GAUNTLET_DB
     .prepare('UPDATE runs SET score=?,total=?,scorecard_json=?,user_agent=COALESCE(user_agent,?),sig=? WHERE id=?')
