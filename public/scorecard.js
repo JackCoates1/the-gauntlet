@@ -132,13 +132,36 @@ try {
   card.append(ev);
   const note = el('p', 'muted', 'The bundle contains a hash-chained, timestamped replay of the exact tool-call sequence and an Ed25519 signature over the ledger root — verifiable offline with the public key published in the repository.');
   card.append(note);
-  const img = document.createElement('img'); img.src = c.badgeUrl; img.alt = 'WebMCP security badge'; card.append(img);
-  const btn = el('button', 'ghost', 'COPY EMBED CODE');
-  btn.onclick = async () => {
-    await navigator.clipboard.writeText('<img src="' + location.origin + c.badgeUrl + '" alt="WebMCP Security: ' + c.score + '/' + c.total + ' — The Gauntlet">');
-    btn.textContent = 'COPIED'; setTimeout(() => { btn.textContent = 'COPY EMBED CODE'; }, 1200);
+  const score = String(c.score) + '/' + String(c.total);
+  const badgePath = '/api/badge/' + encodeURIComponent(c.id) + '.svg?label=' + encodeURIComponent('The Gauntlet') + '&score=' + encodeURIComponent(score);
+  const badgeUrl = location.origin + badgePath;
+  const scorecardUrl = location.origin + '/scorecards/' + encodeURIComponent(c.id);
+  const img = document.createElement('img'); img.src = badgePath; img.alt = 'The Gauntlet: ' + score; card.append(img);
+  const embed = el('section', 'embed-options');
+  embed.append(el('div', 'eyebrow', 'EMBED THIS SCORE'));
+  const formats = el('div', 'embed-formats');
+  const imageFormat = el('button', 'ghost active', 'IMAGE EMBED');
+  const markdownFormat = el('button', 'ghost', 'MARKDOWN EMBED');
+  const copy = el('button', 'ghost', 'COPY IMAGE EMBED');
+  let format = 'image';
+  const snippets = {
+    image: '<img src="' + badgeUrl + '" alt="The Gauntlet: ' + score + '">',
+    markdown: '[![The Gauntlet: ' + score + '](' + badgeUrl + ')](' + scorecardUrl + ')',
   };
-  card.append(btn);
+  const selectFormat = next => {
+    format = next;
+    imageFormat.classList.toggle('active', next === 'image');
+    markdownFormat.classList.toggle('active', next === 'markdown');
+    copy.textContent = next === 'image' ? 'COPY IMAGE EMBED' : 'COPY MARKDOWN EMBED';
+  };
+  imageFormat.onclick = () => selectFormat('image');
+  markdownFormat.onclick = () => selectFormat('markdown');
+  copy.onclick = async () => {
+    try { await navigator.clipboard.writeText(snippets[format]); copy.textContent = 'COPIED'; }
+    catch { copy.textContent = 'COPY FAILED'; }
+    setTimeout(() => selectFormat(format), 1200);
+  };
+  formats.append(imageFormat, markdownFormat); embed.append(formats, copy); card.append(embed);
   // Share result: native share sheet where available (mobile/Telegram),
   // clipboard fallback everywhere else. The share URL uses the SEO-friendly
   // /scorecards/:id alias, which serves the Open Graph meta tags so the link
