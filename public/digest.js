@@ -15,31 +15,61 @@ try {
   }
   const histories = new Map((history?.traps || []).map(t => [t.name, t.series]));
   for (const card of data.cards) {
-    const box = el('article', 'card');
-    const head = el('div', 'section-head');
-    const hd = el('div');
-    hd.append(el('div', 'eyebrow', 'FINGERPRINT'), el('h3', '', card.fingerprint));
-    head.append(hd);
-    const meta = el('small', 'muted', `${card.runs} run${card.runs === 1 ? '' : 's'}` + (card.meanPct !== null ? ` · mean ${card.meanPct}% of tested traps passed` : '') + (card.overall ? ` · ${card.overall.violationPct}% violation rate` : ''));
-    head.append(meta);
+    const box = el('article', 'digest-card');
+    const head = el('div', 'digest-card-head');
+    const title = el('div');
+    title.append(el('div', 'eyebrow', 'FINGERPRINT'), el('h3', '', card.fingerprint));
+    const summary = el('div', 'digest-summary');
+    summary.append(
+      digestMetric(card.meanPct === null ? '—' : `${card.meanPct}%`, 'MEAN RESISTANCE'),
+      digestMetric(card.overall ? `${card.overall.violationPct}%` : '—', 'VIOLATION RATE'),
+      digestMetric(String(card.runs), card.runs === 1 ? 'SEALED RUN' : 'SEALED RUNS'),
+    );
+    head.append(title, summary);
     box.append(head);
-    const list = el('div', 'console');
     const entries = Object.entries(card.traps).sort((a, b) => (b[1].susceptibilityPct ?? -1) - (a[1].susceptibilityPct ?? -1));
+    const overview = el('div', 'digest-overview');
+    overview.append(el('div', 'digest-overview-label', 'ATTACK-CLASS RISK OVERVIEW'));
+    const grid = el('div', 'digest-risk-grid');
     for (const [name, t] of entries) {
-      const line = el('div', 'line');
       const pct = t.susceptibilityPct === null ? 'not tested' : t.susceptibilityPct + '% fell';
-      line.append(el('b', t.susceptibilityPct >= 50 ? 'fail' : '', pct), el('span', '', ` — ${name} (${t.fail}/${t.pass + t.fail})`));
-      list.append(line);
-      const spark = fallRateSparkline(histories.get(name));
-      if (spark) list.append(el('div', 'trend-line ' + spark.className, `${spark.label} ${spark.bars}`));
+      const tested = t.pass + t.fail;
+      const cell = el('div', 'digest-risk ' + (t.susceptibilityPct >= 50 ? 'digest-risk-high' : ''));
+      const rate = el('b', t.susceptibilityPct >= 50 ? 'fail' : '', pct);
+      cell.append(rate, el('span', 'digest-risk-name', name), el('small', 'muted', tested ? `${t.fail}/${tested} fell` : 'no exposures'));
+      grid.append(cell);
     }
-    box.append(list);
+    overview.append(grid);
+    box.append(overview);
+
+    const details = el('details', 'digest-details');
+    const detailSummary = el('summary', '', 'FULL PER-TRAP BREAKDOWN & DAILY TRENDS');
+    detailSummary.setAttribute('aria-label', `Expand per-trap breakdown and daily fall-rate trends for ${card.fingerprint}`);
+    const list = el('div', 'digest-detail-list');
+    for (const [name, t] of entries) {
+      const row = el('div', 'digest-detail-row');
+      const copy = el('div');
+      const tested = t.pass + t.fail;
+      copy.append(el('b', t.susceptibilityPct >= 50 ? 'fail' : '', name), el('small', 'muted', t.susceptibilityPct === null ? 'Not tested' : `${t.susceptibilityPct}% fell · ${t.fail}/${tested} exposures`));
+      const spark = fallRateSparkline(histories.get(name));
+      row.append(copy);
+      row.append(el('span', 'digest-trend ' + (spark?.className || ''), spark ? `${spark.label} ${spark.bars}` : 'daily trend unavailable'));
+      list.append(row);
+    }
+    details.append(detailSummary, list);
+    box.append(details);
     wrap.append(box);
   }
 } catch (e) {
   const wrap = document.querySelector('#cards');
   wrap.textContent = '';
   wrap.append(el('div', 'line muted', e.message || 'Digest unavailable.'));
+}
+
+function digestMetric(value, label) {
+  const metric = el('div', 'digest-metric');
+  metric.append(el('strong', '', value), el('span', '', label));
+  return metric;
 }
 
 function fallRateSparkline(series) {

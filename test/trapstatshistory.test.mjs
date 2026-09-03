@@ -31,6 +31,8 @@ check(body.biggestSwing && body.biggestSwing.days <= 2, 'reports the largest adj
 const client = readFileSync(new URL('../public/digest.js', import.meta.url), 'utf8');
 check(client.includes("fetch('/api/trapstats/history')"), 'digest fetches the optional trend endpoint');
 check(client.includes('textContent = x') && !/\.innerHTML\s*=/.test(client), 'digest trend renderer remains textContent-only');
+check(client.includes("'digest-risk-grid'") && client.includes("'digest-details'"), 'digest renders a compact risk grid with an on-demand full breakdown');
+check(client.includes('FULL PER-TRAP BREAKDOWN & DAILY TRENDS'), 'digest keeps daily trend detail behind a clear expander');
 const source = readFileSync(new URL('../embed/gauntlet-traps/traps.mjs', import.meta.url), 'utf8');
 check(source.includes('exposedAt: firstSeen.createdAt || null'), 'canonical timeline exposes the first predicate-derived exposure timestamp');
 
