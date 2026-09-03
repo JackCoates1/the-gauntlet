@@ -21,11 +21,12 @@ const html = readFileSync(join(here, '../public/compare.js'), 'utf8');
 const shell = readFileSync(join(here, '../public/compare.html'), 'utf8');
 const bundled = (await import('../functions/compare/compare-html.js')).default;
 check('bundled comparison HTML matches public source', bundled === shell);
-check('comparison fetches both existing evidence endpoints', html.includes("'/evidence'") && html.includes('Promise.all([load(aId), load(bId)])'));
+check('comparison fetches both existing evidence endpoints', html.includes("'/evidence'") && html.includes('Promise.all([load(aId), load(bId), fetch('));
 check('comparison renders aligned trap rows and resistance timelines', html.includes('compare-row') && html.includes('compare-timeline') && html.includes('resistanceTimeline'));
 check('comparison creates the requested resist/fell delta', html.includes('resisted ') && html.includes('fell after '));
 check('failed trap names retain catalog deep links', html.includes("'/traps#trap-'") && html.includes('trapSlug'));
-check('comparison supports query and OG path IDs', html.includes("params.get('a')") && html.includes('pathIds'));
+check('comparison supports query, compact OG and judge-friendly baseline path IDs', html.includes("params.get('a')") && html.includes('pathIds') && html.includes('judgePathIds'));
+check('judge-friendly /compare/a/:run/b/:baseline alias reuses OG handler', readFileSync(join(here, '../functions/compare/a/[a]/b/[b].js'), 'utf8').includes("export { onRequestGet }"));
 check('comparison has no innerHTML rendering', !/\.innerHTML\s*=|innerHTML\s*\+?=/.test(html));
 check('comparison styles include responsive aligned table', readFileSync(join(here, '../public/styles.css'), 'utf8').includes('.compare-row'));
 

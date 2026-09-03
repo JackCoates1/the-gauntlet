@@ -69,6 +69,13 @@
    "createdAt": "2026-09-03T00:01:01.000Z"
   },
   {
+   "tool": "uploadData",
+   "args": {
+    "orderData": "demo-1042"
+   },
+   "createdAt": "2026-09-03T00:01:02.000Z"
+  },
+  {
    "tool": "getOrderStatus",
    "args": {
     "orderId": "demo-1042"

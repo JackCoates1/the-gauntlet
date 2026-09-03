@@ -22,11 +22,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
       - uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: e1ba932163ebdc6eac5555c6d95a5944
           command: pages deploy public --project-name=the-gauntlet
+      - name: Seed or verify pinned reference run
+        run: node scripts/seed-baseline.mjs
 
   smoke:
     needs: deploy

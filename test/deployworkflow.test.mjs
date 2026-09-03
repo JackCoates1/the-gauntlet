@@ -23,6 +23,7 @@ check(deploy.includes('cloudflare/wrangler-action@v3'), 'deploy uses the Cloudfl
 check(deploy.includes('apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}'), 'deploy reads the Cloudflare token from a GitHub secret');
 check(deploy.includes('accountId: e1ba932163ebdc6eac5555c6d95a5944'), 'deploy targets the configured Cloudflare account');
 check(deploy.includes('command: pages deploy public --project-name=the-gauntlet'), 'deploy publishes the public Pages build output');
+check(deploy.includes('node scripts/seed-baseline.mjs'), 'deploy seeds or verifies the pinned reference run');
 check(!/cfat_|CLOUDFLARE_API_TOKEN:\s*[^$]/.test(workflow), 'workflow contains no Cloudflare token literal');
 
 // Smoke guardrails: production must be verified after every deploy.
@@ -36,7 +37,7 @@ check(workflow.includes('https://gauntlet.jackcoates.co.uk'), 'smoke targets the
 // The smoke script itself must stay dependency-free and assert the core surface.
 const smokeScript = readFileSync(join(root, 'scripts/smoke.mjs'), 'utf8');
 check(!/from ['"](?!\w+:)[^'"]+['"]/.test(smokeScript.replace(/from 'node:[^']+'/g, '')), 'smoke script has no third-party imports (plain fetch only)');
-for (const route of ['/', '/traps', '/docs', '/leaderboard', '/digest', '/demo', '/verify', '/api/recent', '/api/trapstats', '/openapi.json', '/feed.xml', '/scorecards/']) {
+for (const route of ['/', '/traps', '/docs', '/leaderboard', '/digest', '/demo', '/verify', '/baseline.json', '/api/recent', '/api/trapstats', '/openapi.json', '/feed.xml', '/scorecards/', '/compare/a/']) {
   check(smokeScript.includes(`'${route}`) || smokeScript.includes(`"${route}`) || smokeScript.includes('`' + route), `smoke script asserts ${route}`);
 }
 check(smokeScript.includes('possibleTraps'), 'smoke script checks possibleTraps === 13');

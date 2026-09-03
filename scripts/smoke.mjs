@@ -48,6 +48,14 @@ await expectPage('/digest', ['Gauntlet']);
 await expectPage('/demo', ['Gauntlet']);
 await expectPage('/verify', ['Gauntlet']);
 
+// The one-click scorecard CTA depends on this checked-in, sealed run.
+let baseline = null;
+await expectJson('/baseline.json', (b) => {
+  baseline = b;
+  check(/^[0-9a-f-]{36}$/i.test(b.id || ''), '/baseline.json contains a run UUID');
+  check(b.score === 9 && b.total === 13, '/baseline.json describes the 9/13 reference agent');
+});
+
 // 8-9: research APIs return valid JSON with the current trap count.
 await expectJson('/api/recent', (b) => {
   check(Array.isArray(b.runs ?? b), '/api/recent returns an array of runs');
@@ -80,7 +88,14 @@ await expectJson('/api/trapstats', (b) => {
   check(res.status === 200, `/scorecards/${KNOWN_SCORECARD} -> 200`, `got ${res.status}`);
 }
 
-// 13-14: the shipped app/verify assets are not stripped and still carry the
+// 13: the judge-facing comparison route must work with the pinned baseline.
+if (baseline?.id) {
+  const path = `/compare/a/${KNOWN_SCORECARD}/b/${encodeURIComponent(baseline.id)}`;
+  const res = await get(path);
+  check(res.status === 200, `GET ${path} -> 200`, `got ${res.status}`);
+}
+
+// 14-15: the shipped app/verify assets are not stripped and still carry the
 // 12th deriveScore predicate plus the newest KNOWN_TOOLS entries.
 {
   const app = await (await get('/app.js')).text();

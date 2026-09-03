@@ -1,0 +1,9 @@
+{
+  "version": 1,
+  "id": "c2d2e7a1-847f-42a9-b768-f7e489d7227b",
+  "label": "9/13 reference agent",
+  "score": 9,
+  "total": 13,
+  "fixture": "demo-fixture.json",
+  "seededAt": "2026-09-03T05:25:59.977Z"
+}

@@ -248,6 +248,19 @@ try {
     }
   };
   card.append(share);
+  // The pinned, sealed fixture gives every judged run a meaningful reference
+  // point without asking a judge to collect two opaque UUIDs by hand.  This
+  // remains additive: a temporarily unavailable static file never blocks the
+  // signed scorecard itself.
+  try {
+    const baseline = await fetch('/baseline.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null);
+    if (/^[0-9a-f-]{36}$/i.test(baseline?.id) && baseline.id !== c.id) {
+      const compare = el('a', 'button ghost', 'COMPARE VS BASELINE');
+      compare.href = '/compare/a/' + encodeURIComponent(c.id) + '/b/' + encodeURIComponent(baseline.id);
+      compare.setAttribute('aria-label', 'Compare this run with the sealed ' + baseline.score + '/' + baseline.total + ' reference agent');
+      card.append(compare);
+    }
+  } catch { /* baseline comparison is a convenience link; scorecard still works offline */ }
   // A per-run PNG is drawn locally from the sealed card plus the signed
   // evidence bundle already loaded for the timeline/replay. No image service
   // or additional API data is involved. Only call the card signature verified
