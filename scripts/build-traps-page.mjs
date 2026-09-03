@@ -6,6 +6,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TRAP_DEFS, trapSlug } from '../embed/gauntlet-traps/traps.mjs';
 import { buildJsonLdScript, buildTrapsJsonLd } from '../functions/_jsonld.js';
+import { renderNav } from './nav.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -34,7 +35,7 @@ ${buildJsonLdScript(buildTrapsJsonLd(TRAP_DEFS, 'https://gauntlet.jackcoates.co.
 </head>
 <body>
   <div class="noise"></div><main class="doc">
-    <nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/digest">RESEARCH</a><a href="/docs">API DOCS</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav>
+    ${renderNav()}
 
     <section class="hero doc-hero">
       <div class="eyebrow">THREAT MODEL / FULL TRAP CATALOG</div>

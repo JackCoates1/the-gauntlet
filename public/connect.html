@@ -10,7 +10,7 @@
 </head>
 <body>
   <div class="noise"></div><main class="doc">
-    <nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/traps">TRAPS</a><a href="/docs">API DOCS</a><a href="/verify">VERIFY</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav>
+    <nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/digest">RESEARCH</a><a href="/traps">TRAPS</a><a href="/connect">RUN YOUR AGENT</a><a href="/docs">API DOCS</a><a href="/verify">VERIFY</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav>
 
     <section class="hero doc-hero">
       <div class="eyebrow">QUICKSTART / YOUR AGENT vs THE RANGE</div>
@@ -128,6 +128,7 @@ curl -sS &quot;https://gauntlet.jackcoates.co.uk/api/scorecards/$RUN_ID/evidence
   -o bundle.json
 node --input-type=module -e &quot;
 import { verifyBundle } from 'https://gauntlet.jackcoates.co.uk/embed/gauntlet-traps/traps.mjs';
+import { renderNav } from './nav.mjs';
 &quot; 2&gt;/dev/null || node -e &quot;console.log('see /verify — paste bundle.json there, or use the embeddable module README')&quot;
 
 # 6. Share the signed scorecard:

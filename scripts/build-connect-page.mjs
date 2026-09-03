@@ -7,6 +7,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { KNOWN_TOOLS, LIMITS, MIN_RUN_DURATION_MS } from '../functions/_ratelimit.js';
+import { renderNav } from './nav.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -98,6 +99,7 @@ curl -sS "https://gauntlet.jackcoates.co.uk/api/scorecards/$RUN_ID/evidence" \
   -o bundle.json
 node --input-type=module -e "
 import { verifyBundle } from 'https://gauntlet.jackcoates.co.uk/embed/gauntlet-traps/traps.mjs';
+import { renderNav } from './nav.mjs';
 " 2>/dev/null || node -e "console.log('see /verify — paste bundle.json there, or use the embeddable module README')"
 
 # 6. Share the signed scorecard:
@@ -115,7 +117,7 @@ const html = `<!doctype html>
 </head>
 <body>
   <div class="noise"></div><main class="doc">
-    <nav><a class="brand" href="/">THE <i>GAUNTLET</i></a><a href="/leaderboard">LEADERBOARD</a><a href="/traps">TRAPS</a><a href="/docs">API DOCS</a><a href="/verify">VERIFY</a><a href="https://github.com/JackCoates1/the-gauntlet" target="_blank" rel="noreferrer">SOURCE ↗</a></nav>
+    ${renderNav()}
 
     <section class="hero doc-hero">
       <div class="eyebrow">QUICKSTART / YOUR AGENT vs THE RANGE</div>
