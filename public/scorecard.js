@@ -79,6 +79,7 @@ try {
   // Replay walkthrough: the same signed evidence response already fetched for
   // the resistance timeline. The ledger plays at 6× real-time (60s → ~10s),
   // and all server-provided text is assigned through textContent only.
+  const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
   if (evidenceBundle && Array.isArray(evidenceBundle.replay) && evidenceBundle.replay.length) {
     const events = orderReplayEvents(evidenceBundle.replay);
     const timeline = Array.isArray(evidenceBundle.resistanceTimeline) ? evidenceBundle.resistanceTimeline : [];
@@ -87,12 +88,13 @@ try {
     replay.append(el('div', 'eyebrow replay-head', 'TAMPER-EVIDENT REPLAY'));
     const controls = el('div', 'replay-controls');
     const play = el('button', 'ghost replay-play', '▶ REPLAY RUN');
+    play.setAttribute('aria-label', 'Play the tamper-evident replay of the signed event ledger');
     const scrub = document.createElement('input');
     scrub.className = 'replay-scrub'; scrub.type = 'range'; scrub.min = '0'; scrub.max = '1000'; scrub.value = '0'; scrub.setAttribute('aria-label', 'Replay position');
     const clock = el('span', 'replay-clock', '0.0s / ' + (duration / 1000).toFixed(1) + 's');
     controls.append(play, scrub, clock); replay.append(controls);
-    const trapBoard = el('div', 'replay-traps');
-    const ledger = el('div', 'replay-ledger');
+    const trapBoard = el('div', 'replay-traps'); trapBoard.setAttribute('aria-live', 'polite');
+    const ledger = el('div', 'replay-ledger'); ledger.setAttribute('aria-live', 'polite');
     replay.append(trapBoard, ledger); card.append(replay);
     let elapsed = 0, frame = 0, startedAt = 0, playing = false;
     const stop = () => { if (frame) cancelAnimationFrame(frame); frame = 0; playing = false; play.textContent = '▶ REPLAY RUN'; };
@@ -128,7 +130,8 @@ try {
       playing = true; play.textContent = '❚❚ PAUSE REPLAY'; startedAt = performance.now() - elapsed; frame = requestAnimationFrame(tick);
     };
     scrub.oninput = () => { elapsed = Number(scrub.value) / 1000 * duration; if (playing) startedAt = performance.now() - elapsed; render(); };
-    render();
+    if (reducedMotion) { elapsed = duration; render(); play.setAttribute('aria-label', 'Replay finished — the full signed event ledger is shown'); }
+    else render();
   }
   card.append(el('p', 'signal', 'BADGES: ' + ((c.badges || []).join(' / ') || 'None assigned')));
   // Percentile feedback: one extra fetch to the server-side ranked count so a
@@ -137,10 +140,11 @@ try {
   try {
     const p = await fetch('/api/scorecards/' + encodeURIComponent(c.id) + '/percentile').then(r => r.ok ? r.json() : null);
     const line = p && percentileLine({ percentile: p.percentile, averagePct: p.averagePct, score: c.score, total: c.total });
-    if (line) card.append(el('p', 'signal percentile-line', line));
+    if (line) { const pLine = el('p', 'signal percentile-line', line); pLine.setAttribute('aria-live', 'polite'); card.append(pLine); }
   } catch { /* additive social context; ignore */ }
   // Evidence-replay forensics: downloadable signed bundle.
   const ev = el('a', 'button ghost', 'DOWNLOAD SIGNED EVIDENCE (JSON)');
+  ev.setAttribute('aria-label', 'Download the signed evidence bundle for this run as a JSON file');
   ev.href = '/api/scorecards/' + encodeURIComponent(c.id) + '/evidence';
   ev.download = 'gauntlet-evidence-' + c.id + '.json';
   card.append(ev);
@@ -204,6 +208,7 @@ try {
   // or additional API data is involved. Only call the card signature verified
   // after WebCrypto has checked it against the pinned Gauntlet public key.
   const downloadCard = el('button', 'ghost', 'DOWNLOAD CARD');
+  downloadCard.setAttribute('aria-label', 'Download the resistance certificate for this run as a PNG image');
   downloadCard.onclick = async () => {
     downloadCard.disabled = true;
     downloadCard.textContent = 'PREPARING CARD…';

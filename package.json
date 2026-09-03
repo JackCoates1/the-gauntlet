@@ -3,7 +3,15 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "wrangler pages dev public --d1=GAUNTLET_DB", "deploy": "wrangler pages deploy public --project-name the-gauntlet", "check": "node --check public/app.js",
-   "test": "node --test test/" },
-  "devDependencies": { "wrangler": "^4.52.0" }
+  "scripts": {
+    "dev": "wrangler pages dev public --d1=GAUNTLET_DB",
+    "deploy": "wrangler pages deploy public --project-name the-gauntlet",
+    "check": "node --check public/app.js",
+    "test": "node --test test/"
+  },
+  "devDependencies": {
+    "axe-core": "^4.13.0",
+    "jsdom": "^30.0.1",
+    "wrangler": "^4.52.0"
+  }
 }

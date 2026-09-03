@@ -128,7 +128,7 @@ const html = `<!doctype html>
       <h2>Expose the tools to your agent</h2>
       <p>Open any WebMCP-capable browser context (Chrome with the WebMCP/MCP test flag enabled, or an MCP inspector session pointed at this page), paste this snippet into the devtools console, and the range's tool surface registers itself via <code class="inline">document.modelContext.registerTool()</code> — exactly as the live range does:</p>
       <pre id="extensionSnippet">${esc(snippet)}</pre>
-      <p><button class="button copy-btn" data-copy="extensionSnippet">COPY SNIPPET <span>→</span></button></p>
+      <p><button class="button copy-btn" data-copy="extensionSnippet" aria-label="Copy the WebMCP registration snippet to the clipboard">COPY SNIPPET <span>→</span></button></p>
       <p class="muted">This is a trimmed client-side snippet for a quick smoke test — it registers the core honest tools plus the scorecard generator. The full 18-tool surface (including every malicious decoy) is what the live range at <code class="inline">https://gauntlet.jackcoates.co.uk</code> registers when your agent simply browses it — for a complete run, open the range directly and let your agent work there. Browser extensions shipping a WebMCP provider should use the same <code class="inline">registerTool()</code> manifest shape shown above; tool names must match the table below or the seal is rejected.</p>
     </section>
 
@@ -157,7 +157,7 @@ ${rangeToolRows}
       </ol>
       <p>Every step has a curl equivalent, so non-WebMCP agents (CLI agents, CI harnesses, custom MCP clients) can drive the same pipeline:</p>
       <pre id="curlWalkthrough">${esc(curlWalkthrough)}</pre>
-      <p><button class="button copy-btn" data-copy="curlWalkthrough">COPY CURL WALKTHROUGH <span>→</span></button></p>
+      <p><button class="button copy-btn" data-copy="curlWalkthrough" aria-label="Copy the curl walkthrough to the clipboard">COPY CURL WALKTHROUGH <span>→</span></button></p>
     </section>
 
     <section class="epi">

@@ -4,6 +4,7 @@ const events = Array.isArray(fixture.events) ? fixture.events : [];
 const card = evaluate(events); const timeline = buildResistanceTimeline(events, card.outcomes);
 const el = (tag, cls, value) => { const n = document.createElement(tag); if (cls) n.className = cls; if (value !== undefined) n.textContent = value; return n; };
 const root = document.querySelector('#scorecard'), play = document.querySelector('#play'), reset = document.querySelector('#reset'); let timer = null;
+const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
 function outcomeName(outcome) { if (outcome.status !== 'FAIL') return el('h3', '', outcome.name); const link = el('a', 'trap-link', outcome.name); link.href = '/traps#trap-' + trapSlug(outcome.name); const h = el('h3'); h.append(link); return h; }
 function render(visible) {
   root.textContent = '';
@@ -15,5 +16,5 @@ function render(visible) {
   const replay = el('div', 'console demo-ledger'), bar = el('div', 'console-bar'); bar.append(el('label', '', 'simulated tool ledger / paced replay')); replay.append(bar); const body = el('div', 'console-body'); for (const [i, event] of events.slice(0, visible).entries()) body.append(el('div', 'line', String(i + 1).padStart(2, '0') + '  ' + event.tool + '  ' + JSON.stringify(event.args || {}))); if (!visible) body.append(el('div', 'line muted', 'Press replay to reveal the recorded tool calls.')); replay.append(body); root.append(replay);
 }
 function stop() { if (timer) clearInterval(timer); timer = null; play.textContent = '▶ REPLAY SIMULATED RUN →'; }
-play.addEventListener('click', () => { if (timer) return stop(); let visible = 0; render(visible); play.textContent = '❚❚ PAUSE REPLAY'; timer = setInterval(() => { visible++; render(visible); if (visible >= events.length) stop(); }, 500); });
+play.addEventListener('click', () => { if (timer) return stop(); if (reducedMotion) { render(events.length); play.textContent = '▶ REPLAY COMPLETE'; return; } let visible = 0; render(visible); play.textContent = '❚❚ PAUSE REPLAY'; timer = setInterval(() => { visible++; render(visible); if (visible >= events.length) stop(); }, 500); });
 reset.addEventListener('click', () => { stop(); render(0); }); render(0);
