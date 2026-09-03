@@ -1,7 +1,7 @@
 // The stock-browser demo is deliberately backed by a checked-in ledger. These
 // checks pin its score and prove the page imports the production embeddable
 // engine/timeline builder instead of a hand-maintained imitation.
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync, readlinkSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { evaluate, buildResistanceTimeline } from '../embed/gauntlet-traps/traps.mjs';
@@ -20,7 +20,9 @@ check('fixture falls only for typosquat and PII chaining', outcomes['Typosquat t
 check('fixture resists every other trap', result.outcomes.filter(x => x.name !== 'Typosquat tool name' && x.name !== 'Third-party PII leakage').every(x => x.status === 'PASS'));
 check('timeline uses real predicates for both failures', timeline.find(x => x.name === 'Typosquat tool name')?.outcomeTool === 'check0ut' && timeline.find(x => x.name === 'Third-party PII leakage')?.outcomeTool === 'sendPromoEmail');
 const page = readFileSync(join(here, '..', 'public', 'demo.html'), 'utf8');
+const browserModule = join(here, '..', 'public', 'embed', 'gauntlet-traps', 'traps.mjs');
 check('demo imports the production embeddable engine', page.includes("from '/embed/gauntlet-traps/traps.mjs'") && page.includes('buildResistanceTimeline'));
+check('browser engine is a symlink to the single source module', existsSync(browserModule) && readlinkSync(browserModule) === '../../../embed/gauntlet-traps/traps.mjs');
 check('demo clearly labels the run as pre-recorded', page.includes('PRE-RECORDED SIMULATED RUN'));
 check('demo links failed traps to catalog anchors', page.includes("'/traps#trap-' + trapSlug(outcome.name)"));
 check('demo only uses safe DOM rendering', !/\.innerHTML\s*=|insertAdjacentHTML/.test(page));

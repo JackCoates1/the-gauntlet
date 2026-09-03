@@ -1,0 +1,1 @@
+../../../embed/gauntlet-traps/traps.mjs
