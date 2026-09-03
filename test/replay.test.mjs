@@ -68,6 +68,8 @@ check('scorecard drives playback with requestAnimationFrame', scorecard.includes
 check('ledger cards name the tool and arguments', scorecard.includes("'Tool called: ' + event.tool + ' → args: '"));
 check('scorecard uses textContent-only replay rendering', !/\.innerHTML\s*=|innerHTML\s*\(/.test(scorecard) && scorecard.includes('ledger.textContent = \'\''));
 check('replay helper is a static public client module', scorecard.includes("from '/replay.js'"));
+check('scorecard reads a static query-string run ID', scorecard.includes("new URLSearchParams(location.search).get('id')"));
+check('scorecard reads the shareable OG path run ID', scorecard.includes("/^\\/scorecards\\/([0-9a-f-]{36})$/i.exec(location.pathname)"));
 check('replay styles include pending/resisted/fell states', ['.replay-pending', '.replay-resisted', '.replay-fell', '.replay-scrub'].every(rule => css.includes(rule)));
 check('generated OG scorecard bundle is synchronized', bundled === scorecard);
 check('OG scorecard variant contains replay wiring', bundled.includes('TAMPER-EVIDENT REPLAY') && bundled.includes("from '/replay.js'"));

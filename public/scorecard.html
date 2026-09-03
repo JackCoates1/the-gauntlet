@@ -8,7 +8,9 @@ const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls)
 // embed/gauntlet-traps/traps.mjs (the module that generates the /traps anchor
 // ids). Sync is enforced by test/trapdeeplinks.test.mjs.
 const trapSlug = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
-const id = new URLSearchParams(location.search).get('id');
+// Static scorecards use ?id=; the shareable Open Graph route serves this same
+// page at /scorecards/:id, so both forms must load the full interactive card.
+const id = new URLSearchParams(location.search).get('id') || /^\/scorecards\/([0-9a-f-]{36})$/i.exec(location.pathname)?.[1] || '';
 const card = document.querySelector('#card');
 let evidenceBundle = null;
 try {
