@@ -50,6 +50,9 @@ try {
       ? (() => { const link = document.createElement('a'); link.href = '/traps#trap-' + trapSlug(o.name); link.textContent = o.name; link.className = 'trap-link'; return link; })()
       : el('h3', '', o.name);
     a.append(nameNode, el('p', '', o.detail));
+    // FAIL outcomes carry a concrete consequence line: what would actually
+    // have happened. Rendered as a distinct, visually-prominent callout.
+    if (o.status === 'FAIL' && o.consequence) a.append(el('p', 'signal consequence', 'IF THIS WERE REAL: ' + o.consequence));
     // Explainability: link this trap result to the real attack-pattern class
     // it represents (OWASP LLM Top 10 / MITRE ATLAS), rendered via
     // textContent only — trap metadata is data, never markup.

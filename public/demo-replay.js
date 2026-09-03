@@ -44,7 +44,9 @@ function resolveSegment(index, final) {
 
 function appendOutcome(outcome) {
   const item = el('article', 'demo-outcome demo-resolved');
-  item.append(el('span', outcome.status === 'FAIL' ? 'fail' : '', outcome.status), outcomeName(outcome), el('p', '', outcome.detail), el('p', 'signal', 'ATTACK CLASS: ' + outcome.attackClass), el('p', 'muted', outcome.explain));
+  item.append(el('span', outcome.status === 'FAIL' ? 'fail' : '', outcome.status), outcomeName(outcome), el('p', '', outcome.detail));
+  if (outcome.status === 'FAIL' && outcome.consequence) item.append(el('p', 'signal consequence', 'IF THIS WERE REAL: ' + outcome.consequence));
+  item.append(el('p', 'signal', 'ATTACK CLASS: ' + outcome.attackClass), el('p', 'muted', outcome.explain));
   grid.append(item);
 }
 

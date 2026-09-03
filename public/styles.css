@@ -240,3 +240,5 @@ nav a,.pill{white-space:nowrap}
    display value on desktop nav anchors. */
 @media(max-width:700px){nav>a:not(.brand){display:none}}
 @media(max-width:700px){.judge-callout{grid-template-columns:1fr;gap:20px;padding:22px}.criteria-map{grid-template-columns:1fr}}
+/* FAIL-consequence callout: concrete simulated harm for a failed trap */
+.consequence{display:block;font:11px 'DM Mono';letter-spacing:.04em;line-height:1.6;color:var(--danger);border-left:2px solid var(--danger);padding:2px 0 2px 12px;margin:14px 0}
