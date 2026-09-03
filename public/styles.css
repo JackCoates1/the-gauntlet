@@ -148,6 +148,29 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
    badge and scorecard link occupy fixed cells — content of any width
    can no longer overlap adjacent cells. Link column hugs the right edge. */
 .run-row{display:grid;grid-template-columns:minmax(122px,auto) minmax(120px,1fr) auto auto;gap:4px 14px;align-items:center;padding:2px 0}
+
+/* ---- WCAG 2.5.8 tap targets: every tappable element gets an invisible
+   hit-area of at least 44x44px on mobile. Text/icons keep their visual
+   size — the extra space is transparent padding. Desktop is unchanged. ---- */
+@media(max-width:700px){
+  /* Nav links: inline-block so vertical padding counts. Negative margins
+     keep the visual rhythm the same; short labels get a 44px min-width. */
+  nav a:not(.brand){display:inline-block;min-width:44px;min-height:44px;
+    line-height:44px;padding:0 8px;margin:0 -8px}
+  .brand{display:inline-block;min-height:44px;line-height:44px}
+  .pill{display:inline-block;min-height:44px;padding:0 10px;line-height:28px}
+  /* Leaderboard/scorecard row arrow links. */
+  .run-link{display:inline-block;padding:10px 10px;margin:-10px -10px}
+  /* Recent-runs ticker entries + RSS pill on the homepage. */
+  a.recent-entry{display:inline-block;min-height:44px;line-height:14px;
+    padding:15px 6px;margin:-15px -6px}
+  .recent-feed{display:inline-block;min-height:44px;padding:15px 12px;margin:-15px -12px}
+  /* Research digest expanders. */
+  .digest-details summary{display:block;min-height:44px}
+  /* Inline text links (API docs refs, "on GitHub ↗", trap card titles). */
+  .doc p a,.doc li a,.doc td a,.doc section.epi a,.grid h3 a{
+    display:inline-block;min-height:44px;line-height:normal;padding:14px 0;margin:-14px 0}
+}
 .run-row .run-ts{white-space:nowrap;font-variant-numeric:tabular-nums}
 .run-scorecell{display:flex;align-items:baseline;gap:8px;min-width:0}
 .run-score{white-space:nowrap}
