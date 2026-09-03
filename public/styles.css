@@ -25,3 +25,8 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}
   .doc section.epi:target{box-shadow:none}
 }
+
+/* ---- Scorecard QR: scannable link beside the embed controls ---- */
+.qr-wrap{display:flex;align-items:center;gap:14px;margin-top:18px}
+.qr-wrap .qr-code{width:96px;height:96px;border:1px solid var(--line);background:#fff;display:block}
+.qr-wrap p{margin:0;font:11px 'DM Mono';letter-spacing:.08em}

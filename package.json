@@ -13,5 +13,8 @@
     "axe-core": "^4.13.0",
     "jsdom": "^26.1.0",
     "wrangler": "^4.52.0"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4"
   }
 }

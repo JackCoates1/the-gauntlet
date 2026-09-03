@@ -60,7 +60,7 @@ const roundedRect = (ctx, x, y, width, height, radius) => {
   ctx.beginPath(); ctx.roundRect(x, y, width, height, radius); ctx.closePath();
 };
 
-export function drawResistanceCertificate({ scorecard, evidence, origin = location.origin, now = Date.now() } = {}) {
+export function drawResistanceCertificate({ scorecard, evidence, origin = location.origin, now = Date.now(), qrImage = null } = {}) {
   if (!scorecard?.id) throw new Error('A sealed scorecard is required');
   const canvas = document.createElement('canvas');
   canvas.width = CERTIFICATE_WIDTH; canvas.height = CERTIFICATE_HEIGHT;
@@ -100,6 +100,18 @@ export function drawResistanceCertificate({ scorecard, evidence, origin = locati
   ctx.fillStyle = '#8490a2'; ctx.font = '14px monospace';
   ctx.fillText(`${timeline.filter(x => x?.status === 'PASS').length} RESISTED  /  ${timeline.filter(x => x?.status === 'FAIL').length} FLAGGED  /  ${timeline.filter(x => x?.status === 'NOT TESTED').length} NOT TESTED`, 76, 530);
   ctx.fillStyle = '#e9edf5'; ctx.font = '15px monospace'; ctx.fillText(safeText(shortLink), 76, 566);
+  // Scannable QR of the scorecard URL, bottom-right of the printed card. The
+  // QR SVG is fetched from the server and rasterized to a PNG bitmapped
+  // drawImage source; a failed fetch simply leaves the link text as the
+  // fallback — the certificate must still render.
+  if (qrImage && qrImage.complete && qrImage.naturalWidth > 0) {
+    const qrX = 1000, qrY = 444, qrSize = 118;
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(qrX - 8, qrY - 8, qrSize + 16, qrSize + 16);
+    ctx.strokeStyle = '#202938'; ctx.lineWidth = 1; ctx.strokeRect(qrX - 8, qrY - 8, qrSize + 16, qrSize + 16);
+    ctx.drawImage(qrImage, qrX, qrY, qrSize, qrSize);
+    ctx.fillStyle = '#8490a2'; ctx.font = '12px monospace';
+    ctx.fillText('SCAN TO VERIFY', qrX + 6, qrY + qrSize + 18);
+  }
   return canvas;
 }
 

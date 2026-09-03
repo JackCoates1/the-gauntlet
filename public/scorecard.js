@@ -180,6 +180,18 @@ try {
     setTimeout(() => selectFormat(format), 1200);
   };
   formats.append(imageFormat, markdownFormat); embed.append(formats, copy); card.append(embed);
+  // Judge-scan QR: same /scorecards/:id URL as the share button, rendered by
+  // the server as a scannable SVG. Displayed next to the embed controls so a
+  // judge can point a phone camera at the screen and open the verified card.
+  const qrImg = document.createElement('img');
+  qrImg.src = '/scorecards/' + encodeURIComponent(c.id) + '/qr.svg';
+  qrImg.alt = 'QR code linking to this scorecard';
+  qrImg.className = 'qr-code';
+  const qrWrap = el('div', 'qr-wrap');
+  const qrLabel = el('p', 'muted', 'SCAN TO VERIFY (IN PERSON)');
+  qrWrap.append(qrImg, qrLabel);
+  qrWrap.setAttribute('aria-label', 'QR code that opens this scorecard on a phone');
+  embed.append(qrWrap);
   // Share result: native share sheet where available (mobile/Telegram),
   // clipboard fallback everywhere else. The share URL uses the SEO-friendly
   // /scorecards/:id alias, which serves the Open Graph meta tags so the link
@@ -214,7 +226,16 @@ try {
     downloadCard.textContent = 'PREPARING CARD…';
     try {
       const signatureVerified = await hasVerifiedSignature(evidenceBundle);
-      downloadResistanceCertificate({ scorecard: c, evidence: { ...evidenceBundle, signatureVerified }, origin: location.origin });
+      // Fetch the server-rendered QR of this card's URL so the downloaded
+      // certificate carries a scannable link. Soft-fail: the link text is
+      // already on the card if the image can't load.
+      const qrImage = await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = () => resolve(null);
+        img.src = '/scorecards/' + encodeURIComponent(c.id) + '/qr.svg';
+      });
+      downloadResistanceCertificate({ scorecard: c, evidence: { ...evidenceBundle, signatureVerified }, origin: location.origin, qrImage });
       downloadCard.textContent = 'CARD DOWNLOADED';
     } catch {
       downloadCard.textContent = 'CARD UNAVAILABLE';
