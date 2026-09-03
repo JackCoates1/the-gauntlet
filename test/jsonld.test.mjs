@@ -50,6 +50,7 @@ const home = buildHomepageJsonLd({ sealedRuns: 10, averageResisted: 7.3, possibl
 check('homepage JSON-LD is a SecurityApplication', home['@type'] === 'SoftwareApplication' && home.applicationCategory === 'SecurityApplication');
 check('homepage offer is $0', home.offers.price === '0');
 check('homepage rating mirrors trapstats community average', home.aggregateRating.ratingValue === 7.3 && home.aggregateRating.bestRating === 13 && home.aggregateRating.ratingCount === 10);
+check('homepage rating fallback keeps the thirteenth-trap scale', buildHomepageJsonLd({ sealedRuns: 1, averageResisted: 13 }, 'https://x.test').aggregateRating.bestRating === 13);
 check('homepage rating omitted when no sealed runs', buildHomepageJsonLd({ sealedRuns: 0 }, 'https://x.test').aggregateRating === undefined);
 
 // ---- unit: traps ItemList ----
