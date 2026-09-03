@@ -64,4 +64,31 @@ try {
     row.append(trap, ac, bc, el('div', 'compare-delta', verdict(a, b, name, baselineComparison))); table.append(row);
   }
   section.append(table); root.append(section);
-} catch (e) { root.textContent = ''; root.append(el('div', 'eyebrow', 'RUN COMPARISON'), el('h1', '', 'Comparison unavailable.'), el('p', 'lede', e.message || 'Unable to load those evidence bundles.')); }
+} catch (e) {
+  root.textContent = '';
+  root.append(el('div', 'eyebrow', 'RUN COMPARISON'), el('h1', '', 'Comparison unavailable.'), el('p', 'lede', e.message || 'Unable to load those evidence bundles.'));
+  // Clickable examples: pull a couple of real recent verified runs so a judge
+  // can try the compare feature in one click instead of hand-typing UUIDs.
+  // Soft-fail: if the API is unreachable the plain error message above stands.
+  try {
+    const recent = await fetch('/api/recent?limit=8').then(r => r.ok ? r.json() : null);
+    const verified = (recent?.runs || []).filter(run => run.verified && run.url).slice(0, 3);
+    if (verified.length >= 2) {
+      const box = el('div', 'compare-examples');
+      box.append(el('p', 'signal', 'TRY ONE OF THESE RECENT VERIFIED RUNS:'));
+      const list = el('ul', 'compare-examples-list');
+      for (const run of verified) {
+        const item = el('li');
+        const a = el('a', 'compare-example-link', 'Compare vs reference agent →');
+        a.href = '/compare?a=' + encodeURIComponent(run.id) + '&b=baseline';
+        item.append(el('span', '', String(run.score) + '/' + String(run.total) + ' — ' + String(run.label || 'web')), a);
+        list.append(item);
+      }
+      box.append(list);
+      const open = el('a', 'compare-example-link compare-example-browse', 'Browse all verified runs on the leaderboard →');
+      open.href = '/leaderboard';
+      box.append(open);
+      root.append(box);
+    }
+  } catch { /* examples are additive decoration; the error message already rendered */ }
+}

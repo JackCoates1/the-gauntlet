@@ -58,6 +58,9 @@ export async function onRequestGet({ request, env }) {
 
   const xml = [
     '<?xml version="1.0" encoding="utf-8"?>',
+    // XSL stylesheet: real feed readers ignore it, but a browser opening the
+    // feed directly renders the styled HTML view (/feed.xsl) instead of raw XML.
+    '<?xml-stylesheet type="text/xsl" href="/feed.xsl"?>',
     '<feed xmlns="http://www.w3.org/2005/Atom">',
     `<title>${esc('The Gauntlet — verified runs')}</title>`,
     `<subtitle>${esc('Every sealed run on the WebMCP security range, with server-side signature verification.')}</subtitle>`,
