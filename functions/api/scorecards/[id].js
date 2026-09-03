@@ -1,7 +1,11 @@
 import { evaluate } from '../../_lib.js';
+import { TRAP_DEFS } from '../../../embed/gauntlet-traps/traps.mjs';
 import { sealScorecard } from '../../_evidence.js';
 import { rateLimit, tooMany, clientIp, checkRunPlausibility } from '../../_ratelimit.js';
 import { cleanupStaleRuns } from '../../_staleRuns.js';
+
+// defence lookup for backfilling cards sealed before the field existed.
+const DEFENCE_BY_TRAP = Object.fromEntries(TRAP_DEFS.map(t => [t.name, t.defence]));
 
 // Seal a run: compute the scorecard from the SERVER-SIDE event ledger only.
 // The request body is never used as a source of events (the previous
@@ -34,6 +38,13 @@ export async function onRequestPost({ request, params, env }) {
   if (existing?.scorecard_json) {
     // Idempotent re-seal: return the original card, never re-score.
     const card = JSON.parse(existing.scorecard_json);
+    // Backfill defence guidance for cards sealed before the field existed, so
+    // every historical scorecard renders the fix without re-scoring.
+    for (const o of card.outcomes || []) {
+      if (o && o.defence === undefined) {
+        o.defence = DEFENCE_BY_TRAP[o.name] || null;
+      }
+    }
     return Response.json({ ...card, url: `/scorecard?id=${params.id}`, badgeUrl: `/api/badge/${params.id}` });
   }
 
