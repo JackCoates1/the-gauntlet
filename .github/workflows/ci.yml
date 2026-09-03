@@ -15,3 +15,15 @@ jobs:
           node-version: 20
       - run: npm ci
       - run: npm test
+
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: e1ba932163ebdc6eac5555c6d95a5944
+          command: pages deploy . --project-name=the-gauntlet

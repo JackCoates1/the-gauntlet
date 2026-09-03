@@ -59,7 +59,7 @@ The bundle contains a hash-chained, timestamped replay of the exact tool-call se
 
 [![Tests](https://github.com/JackCoates1/the-gauntlet/actions/workflows/ci.yml/badge.svg)](https://github.com/JackCoates1/the-gauntlet/actions/workflows/ci.yml)
 
-All changes are verified by CI on every push: the full test suite (7 suites, 140 checks) runs automatically on GitHub Actions — no manual re-run needed to confirm the "all passing" claims above.
+All changes are verified by CI on every push: the full test suite runs automatically on GitHub Actions, and successful pushes to `main` deploy straight to Cloudflare Pages. The production path is therefore **push → test → live site**, with no manual deployment step.
 
 ## Embeddable trap library
 
