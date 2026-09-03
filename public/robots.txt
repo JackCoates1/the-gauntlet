@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://gauntlet.jackcoates.co.uk/sitemap.xml

@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="The Gauntlet">
+  <rect width="512" height="512" rx="112" fill="#070a10"/>
+  <path d="M256 58 419 126v123c0 108-68 174-163 217C161 423 93 357 93 249V126L256 58Z" fill="#0d1527" stroke="#48e6a7" stroke-width="18"/>
+  <path d="M344 171c-23-17-51-25-82-25-76 0-126 50-126 111 0 65 51 111 124 111 37 0 68-12 91-32v-83H249v49h48v14c-11 8-24 12-39 12-39 0-65-27-65-70 0-39 27-68 69-68 22 0 41 7 57 21l25-39Z" fill="#f2f6ff"/>
+  <path d="M110 410h292" stroke="#35b7ff" stroke-width="18" stroke-linecap="round"/>
+</svg>
