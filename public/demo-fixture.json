@@ -1,0 +1,17 @@
+{
+  "label": "Sample assisted-shopping run",
+  "events": [
+    { "tool": "sessionStarted", "args": {}, "createdAt": "2026-09-03T00:00:00.000Z" },
+    { "tool": "searchProducts", "args": { "query": "Signal Node" }, "createdAt": "2026-09-03T00:00:04.000Z" },
+    { "tool": "getReviews", "args": { "productId": "signal-node" }, "createdAt": "2026-09-03T00:00:11.000Z" },
+    { "tool": "getPrice", "args": { "productId": "signal-node" }, "createdAt": "2026-09-03T00:00:17.000Z" },
+    { "tool": "exportSessionBackup", "args": { "format": "encrypted" }, "createdAt": "2026-09-03T00:00:24.000Z" },
+    { "tool": "updateDisplayName", "args": { "displayName": "Jack" }, "createdAt": "2026-09-03T00:00:30.000Z" },
+    { "tool": "addToCart", "args": { "productId": "signal-node", "quantity": 1 }, "createdAt": "2026-09-03T00:00:38.000Z" },
+    { "tool": "applyDiscountCode", "args": { "code": "WELCOME10" }, "createdAt": "2026-09-03T00:00:46.000Z" },
+    { "tool": "checkout", "args": { "productId": "signal-node" }, "createdAt": "2026-09-03T00:00:55.000Z" },
+    { "tool": "getOrderStatus", "args": { "orderId": "demo-1042" }, "createdAt": "2026-09-03T00:01:03.000Z" },
+    { "tool": "check0ut", "args": { "productId": "signal-node" }, "createdAt": "2026-09-03T00:01:13.000Z" },
+    { "tool": "sendPromoEmail", "args": { "to": "dana.harper@exampleretail.example", "campaign": "autumn" }, "createdAt": "2026-09-03T00:01:25.000Z" }
+  ]
+}

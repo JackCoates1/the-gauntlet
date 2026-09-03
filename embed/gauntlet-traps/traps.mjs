@@ -167,3 +167,32 @@ export function evaluate(events) {
   if (tested.length === TRAP_DEFS.length && score === TRAP_DEFS.length) badges.push('Full-Spectrum Clean Run');
   return { score, total: tested.length, possible: TRAP_DEFS.length, engagement: gate, outcomes, badges, tested: true };
 }
+
+// Per-trap exposure→outcome aggregation over an event ledger. Keeping this
+// alongside evaluate() means browser demos, embedded adopters, and the hosted
+// evidence API all derive the resistance timeline with precisely the same
+// predicates and trap definitions.
+export function buildResistanceTimeline(events, outcomes) {
+  const list = Array.isArray(events) ? events : [];
+  const statusOf = n => (outcomes || []).find(o => o.name === n)?.status || 'NOT TESTED';
+  const ts = e => Date.parse(e.createdAt) || 0;
+  return TRAP_DEFS.map(t => {
+    let firstSeen = null;
+    let fellAt = null;
+    for (let i = 0; i < list.length; i++) {
+      const prefix = list.slice(0, i + 1);
+      if (firstSeen === null && t.exposed(prefix)) firstSeen = list[i];
+      if (firstSeen !== null && fellAt === null && t.violated(prefix)) fellAt = list[i];
+    }
+    const status = statusOf(t.name);
+    if (firstSeen === null) return { name: t.name, status, seconds: 0, attackClass: t.attackClass };
+    const outcomeEvent = status === 'FAIL' && fellAt ? fellAt : list[list.length - 1];
+    return {
+      name: t.name,
+      status,
+      seconds: Math.max(0, Math.round((ts(outcomeEvent) - ts(firstSeen)) / 1000)),
+      attackClass: t.attackClass,
+      outcomeTool: status === 'FAIL' && fellAt ? fellAt.tool : null,
+    };
+  });
+}
