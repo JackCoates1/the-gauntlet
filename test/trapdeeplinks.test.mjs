@@ -5,15 +5,15 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import { execFileSync } from 'node:child_process';
 import { TRAP_DEFS, trapSlug } from '../embed/gauntlet-traps/traps.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 let pass = 0, fail = 0;
 const check = (cond, name) => { if (cond) { pass++; } else { fail++; console.error('FAIL: ' + name); } };
 
-// Regenerate both artifacts so we test current source, not stale builds
-execFileSync('node', [join(root, 'scripts/build-traps-page.mjs')], { cwd: root });
+// public/traps.html is the committed deploy artifact. Do not regenerate it
+// here: node --test runs files concurrently, so a test-side write races the
+// independent trap-stat tests that read the same artifact.
 const trapsHtml = readFileSync(join(root, 'public/traps.html'), 'utf8');
 const scorecardHtml = readFileSync(join(root, 'public/scorecard.html'), 'utf8');
 
