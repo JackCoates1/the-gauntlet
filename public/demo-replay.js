@@ -76,7 +76,6 @@ function render(visible) {
 function stop() { if (timer) clearInterval(timer); timer = null; play.textContent = '▶ REPLAY SIMULATED RUN →'; }
 play.addEventListener('click', () => {
   if (timer) return stop();
-  if (reducedMotion) { render(events.length); play.textContent = '▶ REPLAY COMPLETE'; return; }
   let visible = 0;
   buildSkeleton(); headCount(0);
   play.textContent = '❚❚ PAUSE REPLAY';
@@ -90,7 +89,7 @@ play.addEventListener('click', () => {
       }
     });
     if (visible >= events.length) stop();
-  }, 500);
+  }, reducedMotion ? 750 : 500);
 });
 reset.addEventListener('click', () => { stop(); render(0); }); render(0);
 // Populate the hero copy with real counts from the trap catalog module so the

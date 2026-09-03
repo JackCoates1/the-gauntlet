@@ -166,14 +166,28 @@ try {
       if (elapsed < duration) frame = requestAnimationFrame(tick);
       else stop();
     };
+    // Reduced motion: REPLAY RUN stays a working, scrubbable control — it
+    // advances on a plain timer with the same render pipeline (no
+    // requestAnimationFrame smoothing) while CSS handles suppressing the
+    // gx-step-in / gx-flip transition classes. Stepping (not jumping to the
+    // end) so the user can still review the evidence progression, which is the
+    // whole point of an explicitly clicked replay control.
+    const REDUCED_STEP_MS = 250;
+    let timer = null;
+    const stopTimer = () => { if (timer) clearInterval(timer); timer = null; };
+    const reducedTick = () => {
+      elapsed = Math.min(duration, elapsed + REDUCED_STEP_MS); render();
+      if (elapsed >= duration) { stopTimer(); playing = false; play.textContent = '▶ REPLAY RUN'; }
+    };
     play.onclick = () => {
-      if (playing) return stop();
+      if (playing) { stopTimer(); return stop(); }
       if (elapsed >= duration) elapsed = 0;
-      playing = true; play.textContent = '❚❚ PAUSE REPLAY'; startedAt = performance.now() - elapsed; frame = requestAnimationFrame(tick);
+      playing = true; play.textContent = '❚❚ PAUSE REPLAY';
+      if (reducedMotion) { timer = setInterval(reducedTick, REDUCED_STEP_MS); }
+      else { startedAt = performance.now() - elapsed; frame = requestAnimationFrame(tick); }
     };
     scrub.oninput = () => { elapsed = Number(scrub.value) / 1000 * duration; if (playing) startedAt = performance.now() - elapsed; render(); };
-    if (reducedMotion) { elapsed = duration; render(); play.setAttribute('aria-label', 'Replay finished — the full signed event ledger is shown'); }
-    else render();
+    render();
   }
   verdict.append(el('p', 'signal', 'BADGES: ' + ((c.badges || []).join(' / ') || 'None assigned')));
   // Percentile feedback: one extra fetch to the server-side ranked count so a

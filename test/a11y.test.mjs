@@ -124,16 +124,22 @@ check(/html\{scroll-behavior:auto\}[\s\S]*prefers-reduced-motion/.test(styles.re
 check(/\.doc section\.epi:target\{box-shadow:none\}/.test(styles),
   'styles.css: reduced motion removes the :target glow');
 
-// replay auto-play must jump to the final state under reduced motion
+// replay must stay a working, scrubbable control under reduced motion: no
+// jump-to-end shortcut — stepping continues on a plain timer (no rAF smoothing)
+// while CSS suppresses the transition/animation classes.
 check(scorecardJs.includes("matchMedia('(prefers-reduced-motion: reduce)').matches"),
   'scorecard.js: detects prefers-reduced-motion');
-check(scorecardJs.includes('if (reducedMotion) { elapsed = duration; render();'),
-  'scorecard.js: reduced motion jumps the replay straight to the final ledger state');
+check(scorecardJs.includes('if (reducedMotion) { timer = setInterval(reducedTick'),
+  'scorecard.js: reduced motion steps the replay on a timer (scrubbable, not jump-to-end)');
+check(!scorecardJs.includes('elapsed = duration; render(); play.setAttribute'),
+  'scorecard.js: no reduced-motion jump-to-final-state shortcut');
 const demoReplay = readFileSync(join(root, 'public/demo-replay.js'), 'utf8');
 check(demoReplay.includes("matchMedia('(prefers-reduced-motion: reduce)').matches"),
   'demo-replay.js: detects prefers-reduced-motion');
-check(demoReplay.includes('if (reducedMotion) { render(events.length);'),
-  'demo-replay.js: reduced motion renders the complete ledger without pacing');
+check(demoReplay.includes('reducedMotion ? 750 : 500'),
+  'demo-replay.js: reduced motion slows the step interval instead of skipping pacing');
+check(!demoReplay.includes('REPLAY COMPLETE'),
+  'demo-replay.js: no reduced-motion render-everything shortcut');
 
 // ---- 4.5:1 contrast for the muted palette (WCAG 1.4.3), computed here so the
 // shipped hex values cannot regress ----
