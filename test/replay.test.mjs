@@ -43,7 +43,7 @@ const timeline = buildResistanceTimeline(run.map(({ timestamp, ...rest }) => ({ 
 const transitions = replayTrapTransitions(run, timeline);
 const finalStates = replayTrapStates(run, timeline, run.length);
 const earlyStates = replayTrapStates(run, timeline, 0);
-check('replay creates one transition per resistance-timeline trap', transitions.length === timeline.length && transitions.length === 11);
+check('replay creates one transition per resistance-timeline trap', transitions.length === timeline.length && transitions.length === 12);
 check('all traps start grey/pending', earlyStates.every(state => state.state === 'pending'));
 check('final replay state matches every sealed timeline outcome', finalStates.every((state, i) => state.state === (timeline[i].status === 'PASS' ? 'resisted' : timeline[i].status === 'FAIL' ? 'fell' : 'untested')));
 check('indirect-injection transition keeps server failure status', transitions.find(t => t.name === 'Indirect result injection')?.status === 'FAIL');

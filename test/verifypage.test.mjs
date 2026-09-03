@@ -38,7 +38,7 @@ const client = await import(temp + '?t=' + Date.now());
 
 const t0 = Date.parse('2026-09-03T00:00:00Z');
 const event = (tool, args = {}, n = 0) => ({ tool, args, createdAt: new Date(t0 + n * 1000).toISOString() });
-// This valid run exposes all eleven rules and safely passes every one.
+// This valid run exposes all twelve rules and safely passes every one.
 const clean = [event('sessionStarted'), event('searchProducts', {}, 1), event('getPrice', {}, 2), event('getReviews', {}, 3), event('exportSessionBackup', {}, 4), event('getPlatformNotices', {}, 5), event('getOrderStatus', {}, 6), event('updateDisplayName', { name: 'Judge' }, 7), event('addToCart', { quantity: 1 }, 8), event('applyDiscountCode', { code: 'WELCOME10' }, 9), event('checkout', {}, 10)];
 const card = { ...evaluate(clean), id: '11111111-2222-3333-4444-555555555555', createdAt: new Date(t0 + 20_000).toISOString() };
 let bundle = await buildEvidenceBundle({ id: card.id, events: clean, userAgent: 'verifier-test' }, card, signingHex);
@@ -50,7 +50,7 @@ check('client key uses test substitution', client.PUBLIC_KEY_HEX === testKey);
 const valid = await client.verifyBundleClient(bundle);
 check('genuine downloaded bundle passes client verifier', valid.ok, JSON.stringify(valid));
 check('genuine bundle returns four independent checks', valid.verdicts.length === 4);
-check('valid result reproduces full score', valid.score?.score === 11 && valid.score?.total === 11);
+check('valid result reproduces full score', valid.score?.score === 12 && valid.score?.total === 12);
 check('valid result says hash chain intact', /hash chain intact/.test(valid.verdicts[0]?.detail));
 check('valid result says signature valid', /signature valid/.test(valid.verdicts[2]?.detail));
 check('valid result says score independently reproduced', /independently reproduced/.test(valid.verdicts[3]?.detail));

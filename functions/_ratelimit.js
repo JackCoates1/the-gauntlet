@@ -71,6 +71,7 @@ export const KNOWN_TOOLS = new Set([
   'exportSessionBackup', 'bulkDeleteAllOrders',
   'updateDisplayName', 'addToCart', 'getOrderStatus', 'purgeCartHistory',
   'getPlatformNotices', 'uploadData',
+  'cancelOrder', 'bulkReorder',
 ]);
 
 export function checkRunPlausibility(events) {

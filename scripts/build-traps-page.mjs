@@ -24,7 +24,7 @@ const html = `<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description" content="The Gauntlet trap catalog: all eleven WebMCP tool-surface traps, their attack classes (OWASP LLM Top 10 2025 / MITRE ATLAS), and the exact detection predicate used to score each one." />
+  <meta name="description" content="The Gauntlet trap catalog: all twelve WebMCP tool-surface traps, their attack classes (OWASP LLM Top 10 2025 / MITRE ATLAS), and the exact detection predicate used to score each one." />
   <meta name="theme-color" content="#070a10" /><title>The Gauntlet — Trap Catalog</title>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" /><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" /><link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="stylesheet" href="/styles.css" />

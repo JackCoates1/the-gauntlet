@@ -18,7 +18,7 @@ const boardText = await board.text();
 check('leaderboard CSV returns attachment headers', board.status === 200 && board.headers.get('content-type').includes('text/csv') && board.headers.get('content-disposition').includes('gauntlet-leaderboard.csv'));
 check('leaderboard CSV has research columns', boardText.startsWith('run_id,created_at,verified,score,') && boardText.includes('duration_seconds,trap_fall_rate_pct'));
 check('leaderboard CSV properly quotes hostile spreadsheet labels', boardText.includes('"A, ""quoted""\nagent"'));
-check('leaderboard CSV includes one row per trap and fall rate', boardText.split('\r\n').filter(Boolean).length === 12 && /Indirect result injection[^\r\n]*FAIL,[0-9]+,100/.test(boardText));
+check('leaderboard CSV includes one row per trap and fall rate', boardText.split('\r\n').filter(Boolean).length === 13 && /Indirect result injection[^\r\n]*FAIL,[0-9]+,100/.test(boardText));
 
 const digest = await digestCsv({ env });
 const digestText = await digest.text();
