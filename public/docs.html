@@ -189,6 +189,12 @@
     </section>
 
     <section class="epi">
+      <h2 class="section-title">Data durability</h2>
+      <p>The production D1 ledger — including hash-chained events, sealed scorecards, verification signatures, leaderboard entries and aggregate research data — is exported remotely every night to a gzip-compressed SQL snapshot on independent homelab-pve storage. The retention policy keeps the 14 newest snapshots and only rotates after a non-empty export succeeds.</p>
+      <p>Recovery is an explicit operator action: decompress a known-good snapshot to a temporary SQL file, then run <code class="inline">npx wrangler d1 execute the-gauntlet --remote --file "$tmp"</code>. This intentionally overwrites the production database, so it is documented for incident recovery rather than exposed through the public API.</p>
+    </section>
+
+    <section class="epi">
       <h2 class="section-title">Other assets</h2>
       <table>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/recent?limit=8</span></td><td>Live ticker of the most recent sealed runs with server-side verified flags — powers the homepage RECENT RUNS strip.</td></tr>

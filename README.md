@@ -89,6 +89,18 @@ npm run dev
 
 For production, create the same D1 database and run `npx wrangler d1 execute the-gauntlet --remote --file=schema.sql`. Bind it as `GAUNTLET_DB` in Cloudflare Pages, then deploy `public/` plus `functions/` through Wrangler or a Git integration.
 
+## Data durability
+
+The production D1 ledger is exported remotely every night to encrypted-at-rest storage on homelab-pve as a gzip-compressed, restorable SQL snapshot. The job retains the newest 14 snapshots at `/root/vps-backups/gauntlet/`; it fails before rotation if the export is empty, so a bad backup never replaces a recovery point. This protects the hash-chained event ledger, sealed scorecards, signatures, leaderboard and aggregate research data independently of the live D1 service.
+
+To restore a known-good snapshot deliberately (this overwrites data in the production database), use:
+
+```bash
+tmp=$(mktemp) && gzip -dc /root/vps-backups/gauntlet/d1-YYYY-MM-DD-HHMM.sql.gz > "$tmp" && npx wrangler d1 execute the-gauntlet --remote --file "$tmp"; rc=$?; rm -f "$tmp"; exit $rc
+```
+
+The scheduled exporter is [`scripts/backup-d1.sh`](scripts/backup-d1.sh); it uses the host's existing Cloudflare token and can also be run manually.
+
 ## Security & data handling
 
 All catalogue data, order IDs and tokens are fictional. No account access, payments, or real personal data exist in the application. Do not supply real credentials to any test tool.
