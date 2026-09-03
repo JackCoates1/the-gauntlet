@@ -12,13 +12,15 @@ const check = (cond, msg) => { if (cond) { pass++; console.log('ok   -', msg); }
 
 const css = readFileSync(join(root, 'public/styles.css'), 'utf8');
 const js = readFileSync(join(root, 'public/scorecard.js'), 'utf8');
+// Node 20 is the CI baseline; RegExp.escape only arrived later.
+const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // 1. A @media print block exists.
 check(/@media\s*print\s*\{/.test(css), 'styles.css has a @media print block');
 
 // 2. Outcome strip colours survive printing (print-color-adjust: exact on the tl-* classes).
 for (const cls of ['.tl-seg', '.tl-fail', '.tl-pass']) {
-  const re = new RegExp(RegExp.escape(cls) + '\\{[^}]*print-color-adjust:\\s*exact');
+  const re = new RegExp(escapeRegExp(cls) + '\\{[^}]*print-color-adjust:\\s*exact');
   check(re.test(css), `outcome strip ${cls} preserves colour when printing (print-color-adjust: exact)`);
 }
 
