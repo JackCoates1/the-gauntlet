@@ -87,7 +87,7 @@ export async function verifyBundleClient(bundle) {
 function el(tag, cls, text) { const node = document.createElement(tag); if (cls) node.className = cls; if (text !== undefined) node.textContent = text; return node; }
 function render(out, result) {
   out.replaceChildren(); const box = el('div', 'verdict ' + (result.ok ? 'verdict-ok' : 'verdict-bad')); const score = result.score ? ` — SCORE ${result.score.score}/${result.score.total}` : '';
-  box.append(el('div', 'verdict-headline', result.ok ? 'AUTHENTIC' + score : 'VERIFICATION FAILED'));
+  box.append(el('div', 'verdict-headline', result.ok ? 'AUTHENTIC — HASH CHAIN INTACT, SIGNATURE VALID' + score + ' INDEPENDENTLY REPRODUCED' : 'VERIFICATION FAILED'));
   for (const verdict of result.verdicts) { const row = el('div', 'verdict-row ' + (verdict.ok ? 'v-ok' : 'v-bad')); row.append(el('span', 'v-mark', verdict.ok ? '✓' : '✗'), el('span', 'v-text', verdict.detail)); box.append(row); }
   out.append(box);
 }
