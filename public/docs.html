@@ -168,6 +168,17 @@
     </section>
 
     <section class="epi">
+      <h2 class="section-title">GET /api/trapstats/history — daily trap trend</h2>
+      <p><span class="method m-get">GET</span><span class="path">/api/trapstats/history</span></p>
+      <p>Returns UTC-day exposure and fall counts per trap from sealed event ledgers. Exposure dates are re-derived with the same predicates as <code class="inline">/api/trapstats</code>; the digest uses this for its fall-rate sparklines. <code class="inline">available</code> stays false until there are enough runs for a meaningful trend.</p>
+      <pre><b>Response 200</b>
+{ "available": true,
+  "traps": [{ "name": "Indirect result injection",
+    "series": [{ "day": "2026-09-02", "exposures": 4, "falls": 3 }] }],
+  "biggestSwing": { "name": "Indirect result injection", "deltaPct": 18, "days": 2 } }</pre>
+    </section>
+
+    <section class="epi">
       <h2 class="section-title">GET /api/community — verified score distribution</h2>
       <p><span class="method m-get">GET</span><span class="path">/api/community</span></p>
       <p>Returns a 0–13 histogram for cryptographically verified sealed runs only, plus median and interpolated first/third quartiles. It powers the leaderboard’s community distribution chart.</p>

@@ -697,6 +697,27 @@
         }
       }
     },
+    "/api/trapstats/history": {
+      "get": {
+        "tags": [
+          "Research"
+        ],
+        "summary": "Daily evidence-derived per-trap fall-rate history",
+        "description": "Buckets each sealed ledger by the UTC day a trap was first exposed, using the same predicate-derived exposure logic as /api/trapstats. `available` is false when there is too little data for a meaningful trend.",
+        "responses": {
+          "200": {
+            "description": "Per-trap daily exposure and fall series.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrapStatsHistory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/community": {
       "get": {
         "tags": [
@@ -1309,6 +1330,88 @@
           "community": {
             "type": "object",
             "additionalProperties": true
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "TrapStatsHistory": {
+        "type": "object",
+        "required": [
+          "traps",
+          "community",
+          "available",
+          "generatedAt"
+        ],
+        "properties": {
+          "traps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "series"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "series": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "day",
+                      "exposures",
+                      "falls"
+                    ],
+                    "properties": {
+                      "day": {
+                        "type": "string",
+                        "format": "date"
+                      },
+                      "exposures": {
+                        "type": "integer",
+                        "minimum": 0
+                      },
+                      "falls": {
+                        "type": "integer",
+                        "minimum": 0
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "community": {
+            "type": "object",
+            "required": [
+              "sealedRuns",
+              "exposures"
+            ],
+            "properties": {
+              "sealedRuns": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "exposures": {
+                "type": "integer",
+                "minimum": 0
+              }
+            }
+          },
+          "biggestSwing": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": true
+          },
+          "available": {
+            "type": "boolean"
           },
           "generatedAt": {
             "type": "string",

@@ -281,7 +281,7 @@ export function buildResistanceTimeline(events, outcomes) {
       if (firstSeen !== null && fellAt === null && t.violated(prefix)) fellAt = list[i];
     }
     const status = statusOf(t.name);
-    if (firstSeen === null) return { name: t.name, status, seconds: 0, attackClass: t.attackClass };
+    if (firstSeen === null) return { name: t.name, status, seconds: 0, attackClass: t.attackClass, exposedAt: null };
     const outcomeEvent = status === 'FAIL' && fellAt ? fellAt : list[list.length - 1];
     return {
       name: t.name,
@@ -289,6 +289,9 @@ export function buildResistanceTimeline(events, outcomes) {
       seconds: Math.max(0, Math.round((ts(outcomeEvent) - ts(firstSeen)) / 1000)),
       attackClass: t.attackClass,
       outcomeTool: status === 'FAIL' && fellAt ? fellAt.tool : null,
+      // The ledger timestamp is retained so aggregate research can bucket
+      // exposure outcomes without introducing a separate analytics table.
+      exposedAt: firstSeen.createdAt || null,
     };
   });
 }

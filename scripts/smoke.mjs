@@ -73,6 +73,10 @@ await expectJson('/api/trapstats', (b) => {
   check((b.community && b.community.possibleTraps) === 13, '/api/trapstats possibleTraps === 13', `got ${b.community && b.community.possibleTraps}`);
   check(Array.isArray(b.traps) && b.traps.length === 13, '/api/trapstats lists 13 traps');
 });
+await expectJson('/api/trapstats/history', (b) => {
+  check(Array.isArray(b.traps) && typeof b.available === 'boolean', '/api/trapstats/history returns trend data with availability guard');
+  check(b.traps.every(t => Array.isArray(t.series)), '/api/trapstats/history exposes a series for every trap');
+});
 await expectJson('/api/community', (b) => {
   check(b.total === 13 && Array.isArray(b.buckets) && b.buckets.length === 14, '/api/community returns 14 score buckets');
 });

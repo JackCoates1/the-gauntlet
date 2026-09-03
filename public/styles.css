@@ -6,6 +6,7 @@
 a.recent-entry:hover .recent-who{color:var(--ink)}
 .recent-ok{color:var(--acid)}.recent-feed{font:10px 'DM Mono';letter-spacing:.1em;color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:4px 8px;margin-left:12px}.recent-feed:hover{color:var(--acid);border-color:var(--acid)}
 .progression-line{margin-top:12px}.progression-spark{font:15px/1 'DM Mono';letter-spacing:2px;border-left:1px solid var(--line);padding-left:14px}.progression-up{color:var(--acid)!important}.progression-down{color:var(--danger)!important}
+.trend-callout{margin:0 0 22px;padding:12px 14px;border:1px solid var(--line);font:11px/1.55 'DM Mono';letter-spacing:.02em}.trend-line{padding:3px 0 9px 22px;font:10px/1.1 'DM Mono';letter-spacing:.04em}.trend-line::before{content:'↳ ';color:var(--muted)}.trend-line.trend-learning,.trend-callout.trend-learning{color:var(--acid)}.trend-line.trend-risk,.trend-callout.trend-risk{color:var(--danger)}
 .recent-un{color:var(--muted)}
 .recent-who{color:var(--muted)}
 .recent-sep{color:#3a4657;margin:0 8px}
