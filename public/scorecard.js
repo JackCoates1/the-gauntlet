@@ -1,6 +1,7 @@
 import { formatReplayArgs, orderReplayEvents, replayDurationMs, replayTrapStates, visibleEventCount } from '/replay.js';
 import { downloadResistanceCertificate, hasVerifiedSignature } from '/certificate.js';
 import { percentileLine } from '/percentile.js';
+import { progressionLine, progressionSparkline } from '/progression.js';
 // Percentile line must mirror the shared math module (single source of truth,
 // also imported by the /api/scorecards/:id/percentile Pages Function tests).
 // All scorecard fields (id, trap names, details, badges) are rendered via
@@ -173,6 +174,19 @@ try {
       script.id = 'gauntlet-jsonld-run';
       script.textContent = JSON.stringify(jsonLd);
       document.head.append(script);
+    }
+    // Agent progression: same additive pattern as percentile. The server
+    // matches the scorecard evidence fingerprint against prior sealed runs;
+    // an unavailable endpoint must never interrupt the signed scorecard.
+    const progression = await fetch('/api/scorecards/' + encodeURIComponent(c.id) + '/progression').then(r => r.ok ? r.json() : null);
+    const copy = progression && progressionLine(progression);
+    if (copy) {
+      const line = el('p', 'signal progression-line');
+      line.append(el('span', '', 'PROGRESSION'), el('span', '', copy));
+      const spark = progressionSparkline(progression.previousScores);
+      if (spark) line.append(el('span', 'progression-spark ' + (progression.delta < 0 ? 'progression-down' : 'progression-up'), spark));
+      line.setAttribute('aria-live', 'polite');
+      card.append(line);
     }
   } catch { /* additive social context; ignore */ }
   // Evidence-replay forensics: downloadable signed bundle.

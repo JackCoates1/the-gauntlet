@@ -1,4 +1,5 @@
 import { verifyRun } from '../_evidence.js';
+import { fingerprint } from '../_progression.js';
 
 // Public research digest: aggregates every sealed run into per-model/browser
 // fingerprint cards showing susceptibility per attack class. Served as JSON
@@ -71,18 +72,4 @@ export async function onRequestGet({ env }) {
 // Coarse browser fingerprint: browser family + major version + platform.
 // Deliberately NOT a precise tracking fingerprint — this is aggregate
 // research reporting over self-submitted runs.
-export function fingerprint(ua) {
-  if (!ua || typeof ua !== 'string') return 'Unknown client';
-  let browser = 'Unknown';
-  let version = '';
-  let m;
-  if ((m = ua.match(/Edg\/(\d+)/))) { browser = 'Edge'; version = m[1]; }
-  else if ((m = ua.match(/OPR\/(\d+)/))) { browser = 'Opera'; version = m[1]; }
-  else if ((m = ua.match(/Chrome\/(\d+)/))) { browser = 'Chrome'; version = m[1]; }
-  else if ((m = ua.match(/Firefox\/(\d+)/))) { browser = 'Firefox'; version = m[1]; }
-  else if ((m = ua.match(/Version\/(\d+).*Safari/))) { browser = 'Safari'; version = m[1]; }
-  let platform = /Windows/i.test(ua) ? 'Windows' : /Mac OS X|Macintosh/i.test(ua) ? 'macOS'
-    : /Android/i.test(ua) ? 'Android' : /iPhone|iPad/i.test(ua) ? 'iOS'
-    : /Linux|X11/i.test(ua) ? 'Linux' : '';
-  return [browser, version, platform].filter(Boolean).join(' / ') || 'Unknown client';
-}
+export { fingerprint };

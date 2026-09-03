@@ -145,6 +145,17 @@
     </section>
 
     <section class="epi">
+      <h2 class="section-title">GET /api/scorecards/:id/progression — agent improvement</h2>
+      <p><span class="method m-get">GET</span><span class="path">/api/scorecards/:runId/progression</span></p>
+      <p>Returns the scorecard's chronological position among sealed runs with the same coarse fingerprint used by the research digest (browser family, major version and platform). It adds no stored identifier. <code class="inline">previousScores</code> is a chronological percentage series for the scorecard's small progression sparkline; <code class="inline">delta</code> is only returned when the current and prior trap totals are comparable.</p>
+      <pre><b>Response 200</b>
+{ "id": "…", "fingerprint": "Chrome / 140 / Linux",
+  "runNumber": 3, "priorRunCount": 2,
+  "previous": { "score": 9, "total": 13, "createdAt": "…" },
+  "delta": 1, "previousScores": [ 54, 69 ] }</pre>
+    </section>
+
+    <section class="epi">
       <h2 class="section-title">GET /api/trapstats — community resistance leaderboard</h2>
       <p><span class="method m-get">GET</span><span class="path">/api/trapstats</span></p>
       <p>Aggregates every scored sealed ledger using the same exposure and violation predicates as the scorer. Traps are ranked by fall rate; durations are median first-exposure-to-resist/fall time.</p>
@@ -164,6 +175,7 @@
         <tr><td><span class="method m-get">GET</span><span class="path">/api/webhooks?secret=…</span></td><td>Self-service listing of your registered webhook URLs by signing secret.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/leaderboard.csv?limit=50&amp;verified=0</span></td><td>CSV download of sealed runs and per-trap outcomes, verification flags, fall rates, and durations.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/digest.csv</span></td><td>CSV download of fingerprint-level per-trap susceptibility, verification totals, and median durations.</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="path">/api/scorecards/:runId/progression</span></td><td>Prior sealed scores for this scorecard's coarse digest fingerprint, used by the progression line.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/badge/:runId.svg</span></td><td>330×28 SVG score badge for embedding in READMEs (1h cache).</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/scorecards/:runId</span></td><td>Shareable scorecard page with Open Graph / Twitter meta tags for unfurls.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/og-banner.png</span></td><td>1200×630 share banner.</td></tr>
