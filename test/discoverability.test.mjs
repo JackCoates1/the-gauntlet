@@ -44,8 +44,8 @@ check(robots.includes('https://gauntlet.jackcoates.co.uk/sitemap.xml'), 'robots.
 
 const sitemap = readFileSync(join(publicDir, 'sitemap.xml'), 'utf8');
 const sitemapPaths = [...sitemap.matchAll(/<loc>https:\/\/gauntlet\.jackcoates\.co\.uk([^<]*)<\/loc>/g)].map(match => match[1] || '/');
-const expectedPaths = ['/', '/traps', '/docs', '/leaderboard', '/digest', '/demo', '/verify'];
-check(sitemapPaths.length === expectedPaths.length, 'sitemap contains exactly the seven judge-facing routes');
+const expectedPaths = ['/', '/traps', '/docs', '/leaderboard', '/digest', '/demo', '/verify', '/connect'];
+check(sitemapPaths.length === expectedPaths.length, 'sitemap contains exactly the eight judge-facing routes');
 for (const route of expectedPaths) {
   check(sitemapPaths.includes(route), `sitemap lists ${route}`);
   const backingFile = route === '/' ? 'index.html' : route.slice(1) + '.html';
