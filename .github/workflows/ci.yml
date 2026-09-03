@@ -26,4 +26,4 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: e1ba932163ebdc6eac5555c6d95a5944
-          command: pages deploy . --project-name=the-gauntlet
+          command: pages deploy public --project-name=the-gauntlet
