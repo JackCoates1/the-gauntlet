@@ -145,3 +145,35 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 /* Inline clarity notes: short, muted, single-line explainers that borrow
    the console language rather than adding heavy copy blocks. */
 .clarity-note{margin:0 0 12px;font-size:12px;color:#8d99ab;line-height:1.55;max-width:640px}
+/* ---- Shared motion tokens: one timing/easing contract for every animated
+   step reveal (guided demo modal + /demo replay), so the two experiences read
+   as the same product. Fast, functional, no bounce. ---- */
+:root{--gx-step-in:.34s;--gx-ease:cubic-bezier(.33,0,.2,1);--gx-press:.16s}
+@keyframes gx-step-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes gx-row-in{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:translateY(0)}}
+@keyframes gx-caret{0%,45%{opacity:1}50%,95%{opacity:0}100%{opacity:1}}
+@keyframes gx-flip{0%{transform:scale(.92);filter:saturate(.2) brightness(.55)}60%{transform:scale(1.03)}100%{transform:scale(1);filter:none}}
+
+/* ---- Guided demo modal: transitions, live progress meter, typed surface ---- */
+.demo-step{animation:gx-step-in var(--gx-step-in) var(--gx-ease) both}
+.demo-surface{transition:border-color var(--gx-press) var(--gx-ease),box-shadow var(--gx-press) var(--gx-ease)}
+.demo-surface.demo-live{border-color:#40502c;box-shadow:0 0 0 1px #40502c66}
+.demo-caret{display:inline-block;width:.55em;border-right:2px solid var(--acid);animation:gx-caret 1s steps(1) infinite}
+.demo-progress{position:relative;height:16px;margin-top:22px;border-top:1px solid var(--line)}
+.demo-progress-line{display:flex;gap:14px;padding:10px 0;border-bottom:1px solid var(--line);font:11px 'DM Mono';color:var(--muted);animation:gx-row-in var(--gx-step-in) var(--gx-ease) both}
+.demo-progress-line b{min-width:160px;color:var(--ink)}
+.demo-progress-line.ok b{color:var(--acid)}
+.demo-progress-line.fail b{color:var(--danger)}
+.demo-meter{position:absolute;top:-5px;left:0;right:0;height:3px;background:#161d29;border:1px solid var(--line)}
+.demo-meter-fill{height:100%;width:0;background:linear-gradient(90deg,#4a6b1f,var(--acid));transition:width .35s linear}
+.demo-meter-fill.demo-sealing{background:linear-gradient(90deg,#805b2a,#ffd58a)}
+.demo-progress-head{display:flex;justify-content:space-between;align-items:baseline;gap:12px;margin-top:20px;font:10px 'DM Mono';letter-spacing:.08em;color:var(--muted)}
+
+/* ---- /demo replay: ledger rows land one at a time; trap chips flip when
+   their outcome resolves, echoing the scorecard replay pacing ---- */
+.demo-ledger .line{animation:gx-row-in var(--gx-step-in) var(--gx-ease) both}
+.demo-ledger .line.demo-fresh{color:var(--acid)}
+.demo-tl-seg{transition:background .3s var(--gx-ease),transform .3s var(--gx-ease)}
+.demo-outcome{animation:gx-row-in var(--gx-step-in) var(--gx-ease) both}
+.demo-outcome.demo-resolved{animation:gx-flip .34s var(--gx-ease) both}
+.demo-outcome span{transition:color .3s var(--gx-ease)}
