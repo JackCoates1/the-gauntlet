@@ -1,0 +1,3 @@
+Contact: https://github.com/JackCoates1/the-gauntlet/issues
+Expires: 2027-09-03T00:00:00.000Z
+Canonical: https://gauntlet.jackcoates.co.uk/.well-known/security.txt

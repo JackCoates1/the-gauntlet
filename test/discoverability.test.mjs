@@ -53,5 +53,21 @@ for (const route of expectedPaths) {
 }
 check(new Set(sitemapPaths).size === sitemapPaths.length, 'sitemap contains no duplicate URLs');
 
+const home = readFileSync(join(publicDir, 'index.html'), 'utf8');
+for (const marker of ['og:title', 'og:description', 'og:image', 'twitter:card']) {
+  check(home.includes(marker), `homepage declares ${marker}`);
+}
+check(home.includes('/og-banner.png') && home.includes('summary_large_image'), 'homepage uses the OG banner and large Twitter card');
+check(home.includes('FOR WEBMCP CHALLENGE JUDGES') && home.includes('chrome://flags/#enable-webmcp-testing'), 'homepage has the judge quickstart');
+check(home.includes('fully fictional sandbox') && home.includes('no real payments are charged'), 'homepage makes the sandbox safety boundary visible');
+for (const route of ['/connect', '/leaderboard', '/verify', '/scorecards/']) check(home.includes(route), `judge criteria map links ${route}`);
+
+const manifest = JSON.parse(readFileSync(join(publicDir, 'site.webmanifest'), 'utf8'));
+check(manifest.name === 'The Gauntlet — WebMCP Security Range' && manifest.theme_color === '#070a10', 'web manifest has the established name and theme');
+check(manifest.icons.some(icon => icon.src === '/favicon.svg'), 'web manifest includes the established SVG icon');
+const security = readFileSync(join(publicDir, '.well-known', 'security.txt'), 'utf8');
+check(security.includes('Contact: https://github.com/JackCoates1/the-gauntlet/issues'), 'security.txt points to GitHub issues');
+check(/^Expires: 2027-09-03T00:00:00\.000Z$/m.test(security), 'security.txt has a future expiry');
+
 console.log(`\ndiscoverability tests: ${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

@@ -96,6 +96,8 @@ check(html.includes('crypto.randomUUID'), 'snippet creates a run id');
 check(html.includes('/api/events') && html.includes('/api/scorecards/'), 'curl walkthrough hits the real ingest + seal endpoints');
 check(html.toLowerCase().includes('troubleshooting'), 'page has a troubleshooting section');
 check(html.includes('data-copy'), 'page has copy buttons wired to snippet blocks');
+check(html.includes('NO LOCAL CONFIG') && html.includes('claude_desktop_config.json'), 'page explains why a desktop MCP-server config does not apply');
+check(html.includes('ChatGPT’s in-app browser') && html.includes('chrome://flags/#enable-webmcp-testing'), 'page makes the zero-code browser path explicit');
 
 // 7. Safety guards: textContent-only JS, no raw HTML injection in the generator
 const connectJs = readFileSync(join(root, 'public/connect.js'), 'utf8');

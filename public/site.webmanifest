@@ -1,0 +1,13 @@
+{
+  "name": "The Gauntlet — WebMCP Security Range",
+  "short_name": "The Gauntlet",
+  "description": "A live adversarial security range for WebMCP-capable agents.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#070a10",
+  "theme_color": "#070a10",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "/favicon-32.png", "sizes": "32x32", "type": "image/png" }
+  ]
+}

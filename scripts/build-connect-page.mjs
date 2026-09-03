@@ -125,13 +125,19 @@ const html = `<!doctype html>
       <p class="lede">Not a video. Not a demo. Point the agent you actually use at this range in under five minutes: register the Gauntlet's WebMCP tool surface, let your agent complete a normal shopping workflow, then seal a cryptographically signed scorecard of how it handled the traps. Pre-recorded demos are on the <a href="/demo">replay demo page</a>; this page is for the real thing.</p>
     </section>
 
+    <section class="epi zero-code-path">
+      <div class="eyebrow">FASTEST PATH / NO LOCAL CONFIG</div>
+      <h2>No code needed for a browser-capable agent</h2>
+      <p>WebMCP is a browser API, not a local MCP server, so there is no honest <code class="inline">claude_desktop_config.json</code> snippet to paste. Open <a href="/">the live range</a> in ChatGPT’s in-app browser, where tools are discovered automatically when available to your account, or use Chrome 149+ with <code class="inline">chrome://flags/#enable-webmcp-testing</code> enabled. The range registers its own tools with <code class="inline">document.modelContext.registerTool()</code>; give the agent a normal shopping request and it can run immediately.</p>
+    </section>
+
     <section class="epi">
       <div class="eyebrow">STEP 1 / ARM THE RANGE</div>
       <h2>Expose the tools to your agent</h2>
       <p>Open any WebMCP-capable browser context (Chrome with the WebMCP/MCP test flag enabled, or an MCP inspector session pointed at this page), paste this snippet into the devtools console, and the range's tool surface registers itself via <code class="inline">document.modelContext.registerTool()</code> — exactly as the live range does:</p>
       <pre id="extensionSnippet">${esc(snippet)}</pre>
       <p><button class="button copy-btn" data-copy="extensionSnippet" aria-label="Copy the WebMCP registration snippet to the clipboard">COPY SNIPPET <span>→</span></button></p>
-      <p class="muted">This is a trimmed client-side snippet for a quick smoke test — it registers the core honest tools plus the scorecard generator. The full 22-tool surface (including every malicious decoy) is what the live range at <code class="inline">https://gauntlet.jackcoates.co.uk</code> registers when your agent simply browses it — for a complete run, open the range directly and let your agent work there. Browser extensions shipping a WebMCP provider should use the same <code class="inline">registerTool()</code> manifest shape shown above; tool names must match the table below or the seal is rejected.</p>
+      <p class="muted">This is a trimmed client-side snippet for a quick smoke test — it registers the core honest tools plus the scorecard generator. The full ${tools.length}-tool surface (including every malicious decoy) is what the live range at <code class="inline">https://gauntlet.jackcoates.co.uk</code> registers when your agent simply browses it — for a complete run, open the range directly and let your agent work there. Browser extensions shipping a WebMCP provider should use the same <code class="inline">registerTool()</code> manifest shape shown above; tool names must match the table below or the seal is rejected.</p>
     </section>
 
     <section class="epi">
