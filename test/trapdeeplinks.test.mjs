@@ -47,19 +47,9 @@ check(scorecardHtml.includes("link.href = '/traps#trap-' + trapSlug(o.name)"), '
 check(scorecardHtml.includes('link.textContent = o.name'), 'scorecard sets link text via textContent (no innerHTML)');
 check(!/<a[\s>][^>]*>.{0,40}\{\s*o\.name/.test(scorecardHtml), 'scorecard never interpolates trap names into markup');
 
-// 5. The scorecard's local slug mirror must match the catalog's trapSlug
-//    exactly — extract the arrow body from scorecard.html and compare outputs.
-const m = scorecardHtml.match(/const trapSlug = \(name\) => (.+?);/);
-check(!!m, 'scorecard defines its trapSlug mirror');
-if (m) {
-  let localSlug;
-  try { localSlug = new Function('name', 'return ' + m[1]); } catch { localSlug = null; }
-  check(!!localSlug, 'scorecard trapSlug mirror is parseable');
-  if (localSlug) {
-    for (const t of TRAP_DEFS) check(localSlug(t.name) === trapSlug(t.name), `scorecard slug matches catalog for: ${t.name}`);
-    check(localSlug('Ünïcode Name!!') === trapSlug('Ünïcode Name!!'), 'scorecard slug matches catalog for non-ASCII input');
-  }
-}
+// 5. Scorecards now import the canonical slug function directly, avoiding a
+//    browser-side mirror which could drift from catalog anchor generation.
+check(scorecardHtml.includes("import { TRAP_DEFS, trapSlug } from '/embed/gauntlet-traps/traps.mjs'"), 'scorecard imports the catalog trapSlug directly');
 
 // 6. Styles: :target highlight for the deep-linked card, and link affordance
 const css = readFileSync(join(root, 'public/styles.css'), 'utf8');

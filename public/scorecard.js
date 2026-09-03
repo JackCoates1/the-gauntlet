@@ -2,16 +2,14 @@ import { formatReplayArgs, orderReplayEvents, replayDurationMs, replayTrapStates
 import { downloadResistanceCertificate, hasVerifiedSignature } from '/certificate.js';
 import { percentileLine } from '/percentile.js';
 import { progressionLine, progressionSparkline } from '/progression.js';
+import { TRAP_DEFS, trapSlug } from '/embed/gauntlet-traps/traps.mjs';
+import { renderAttackClassProfile } from '/attack-profile.js';
 // Percentile line must mirror the shared math module (single source of truth,
 // also imported by the /api/scorecards/:id/percentile Pages Function tests).
 // All scorecard fields (id, trap names, details, badges) are rendered via
 // textContent / element assignment — never template-string innerHTML — so a
 // hostile run id or any stored field cannot execute script in this page.
 const el = (tag, cls, text) => { const n = document.createElement(tag); if (cls) n.className = cls; if (text !== undefined) n.textContent = text; return n; };
-// Slug for /traps deep links — must mirror trapSlug() in
-// embed/gauntlet-traps/traps.mjs (the module that generates the /traps anchor
-// ids). Sync is enforced by test/trapdeeplinks.test.mjs.
-const trapSlug = (name) => String(name).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 // Static scorecards use ?id=; the shareable Open Graph route serves this same
 // page at /scorecards/:id, so both forms must load the full interactive card.
 const id = new URLSearchParams(location.search).get('id') || /^\/scorecards\/([0-9a-f-]{36})$/i.exec(location.pathname)?.[1] || '';
@@ -75,6 +73,10 @@ try {
         strip.append(line);
       }
       card.append(strip);
+      // Turn individual findings into the vulnerability classes that matter.
+      // This uses only signed timeline data and local catalog metadata; old
+      // bundles without a timeline simply omit the optional profile.
+      renderAttackClassProfile(card, tl, TRAP_DEFS, trapSlug);
     }
   } catch { /* timeline is additive decoration; never block the scorecard */ }
   // Replay walkthrough: the same signed evidence response already fetched for
