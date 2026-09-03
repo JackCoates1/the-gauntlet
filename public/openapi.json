@@ -391,6 +391,27 @@
         }
       }
     },
+    "/feed.xml": {
+      "get": {
+        "tags": [
+          "Research"
+        ],
+        "summary": "Atom feed of verified sealed runs",
+        "description": "Live Atom 1.0 feed emitting one entry per sealed run, reusing the /api/recent D1 read and server-side verified flag. Subscribe to watch the leaderboard in real time; cached for one minute.",
+        "responses": {
+          "200": {
+            "description": "Atom 1.0 feed.",
+            "content": {
+              "application/atom+xml": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/leaderboard": {
       "get": {
         "tags": [

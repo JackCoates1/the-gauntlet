@@ -4,7 +4,7 @@
 .recent-label{color:var(--acid);letter-spacing:.13em;margin-right:14px}
 .recent-entry{color:var(--muted);text-decoration:none}
 a.recent-entry:hover .recent-who{color:var(--ink)}
-.recent-ok{color:var(--acid)}
+.recent-ok{color:var(--acid)}.recent-feed{font:10px 'DM Mono';letter-spacing:.1em;color:var(--muted);text-decoration:none;border:1px solid var(--line);padding:4px 8px;margin-left:12px}.recent-feed:hover{color:var(--acid);border-color:var(--acid)}
 .recent-un{color:var(--muted)}
 .recent-who{color:var(--muted)}
 .recent-sep{color:#3a4657;margin:0 8px}

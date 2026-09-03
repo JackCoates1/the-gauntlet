@@ -159,6 +159,7 @@
       <h2 class="section-title">Other assets</h2>
       <table>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/recent?limit=8</span></td><td>Live ticker of the most recent sealed runs with server-side verified flags — powers the homepage RECENT RUNS strip.</td></tr>
+        <tr><td><span class="method m-get">GET</span><span class="path">/feed.xml</span></td><td>Atom feed of sealed runs — one entry per run, verified flag computed server-side. Subscribe to watch the leaderboard live.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/leaderboard.csv?limit=50&amp;verified=0</span></td><td>CSV download of sealed runs and per-trap outcomes, verification flags, fall rates, and durations.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/digest.csv</span></td><td>CSV download of fingerprint-level per-trap susceptibility, verification totals, and median durations.</td></tr>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/badge/:runId.svg</span></td><td>330×28 SVG score badge for embedding in READMEs (1h cache).</td></tr>
