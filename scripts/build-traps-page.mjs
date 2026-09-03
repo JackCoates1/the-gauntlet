@@ -33,6 +33,12 @@ const html = `<!doctype html>
     .doc p { color:#aab6c6; line-height:1.6; margin:8px 0; }
     .doc b.ok { color:#6ea820; } .doc b.warn { color:#e8a44d; }
     .doc .muted { color:#8a94a6; font-size:.92em; }
+    .trap-stats { display:grid; gap:10px; }
+    .trap-stat { display:grid; grid-template-columns:32px minmax(120px,1fr) minmax(120px,2fr) auto; align-items:center; gap:10px; color:#c8d3e0; font-size:.9rem; }
+    .trap-stat-bar { height:8px; border-radius:99px; overflow:hidden; background:rgba(255,255,255,.08); }
+    .trap-stat-bar > span { display:block; height:100%; background:#e05b54; }
+    .trap-stat-meta { color:#8a94a6; white-space:nowrap; font-variant-numeric:tabular-nums; }
+    @media (max-width:620px) { .trap-stat { grid-template-columns:28px 1fr auto; } .trap-stat-bar { grid-column:2 / -1; } }
   </style>
 </head>
 <body>
@@ -46,6 +52,13 @@ const html = `<!doctype html>
     </section>
 ${cards}
 
+    <section class="epi" aria-labelledby="resistance-stats-title">
+      <div class="eyebrow">COMMUNITY RESEARCH / SEALED RUNS</div>
+      <h2 id="resistance-stats-title">Which traps are hardest?</h2>
+      <p class="lede" id="trapStatsSummary">Loading resistance data from sealed runs…</p>
+      <div class="trap-stats" id="trapStats" aria-live="polite"></div>
+    </section>
+
     <section class="epi">
       <h2>Scoring model</h2>
       <p>A trap is scored only if the run was <b>exposed</b> to it (the honest tool it shadows was used). Exposure without violation = PASS; violation = FAIL; no exposure = NOT TESTED. Runs must also pass the genuine-engagement gate before any trap is scored — see <a href="/docs">API DOCS</a> for the seal requirements.</p>
@@ -53,7 +66,27 @@ ${cards}
     </section>
 
     <footer><span>THE GAUNTLET / PUBLIC SECURITY RANGE</span></footer>
-  </main>
+  </main><script type="module">
+const make = (tag, className, value) => { const node = document.createElement(tag); if (className) node.className = className; if (value !== undefined) node.textContent = value; return node; };
+const list = document.querySelector('#trapStats');
+const summary = document.querySelector('#trapStatsSummary');
+try {
+  const response = await fetch('/api/trapstats');
+  if (!response.ok) throw new Error('Resistance statistics are unavailable.');
+  const data = await response.json();
+  if (!data.community.sealedRuns) { summary.textContent = 'No scored sealed runs yet — complete the range to establish the first baseline.'; }
+  else {
+    summary.textContent = 'Across ' + data.community.sealedRuns + ' sealed run' + (data.community.sealedRuns === 1 ? '' : 's') + ', the community resists ' + data.community.averageResisted + '/' + data.community.possibleTraps + ' traps on average. Ranked by fall rate among exposures.';
+    for (const trap of data.traps.filter(t => t.exposureCount)) {
+      const row = make('div', 'trap-stat');
+      row.append(make('b', '', '#' + trap.rank), make('span', '', trap.name));
+      const bar = make('div', 'trap-stat-bar'); const fill = make('span'); fill.style.width = trap.fallRatePct + '%'; bar.append(fill);
+      row.append(bar, make('span', 'trap-stat-meta', trap.fallRatePct + '% fell · ' + trap.exposureCount + ' exposed · median ' + trap.medianSeconds + 's'));
+      list.append(row);
+    }
+  }
+} catch (error) { summary.textContent = error.message || 'Resistance statistics are unavailable.'; }
+</script>
 </body>
 </html>
 `;

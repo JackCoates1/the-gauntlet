@@ -53,9 +53,10 @@ for (const t of TRAP_DEFS) {
   check(typeof t.attackClass === 'string' && t.attackClass.startsWith('LLM'), `attack class is OWASP-mapped: ${t.name}`);
 }
 
-// 5. XSS safety: page is generated server-side from catalog constants; assert
-//    no raw script injection points and escaping of the module's own quotes.
-check(!/<script/.test(html), 'traps page is fully static (no runtime scripts)');
+// 5. XSS safety: catalog cards are generated server-side; the aggregate panel
+//    is a textContent-only module so it can refresh as new runs arrive.
+check(html.includes("fetch('/api/trapstats')"), 'traps page loads live resistance statistics');
+check(!/\.innerHTML\s*=/.test(html), 'traps runtime renderer has no innerHTML sink');
 check(html.includes('same catalog module the range scores with'), 'traps page explains single source of truth');
 check(html.includes('WHAT WE CHECK'), 'traps page labels the detection predicate');
 

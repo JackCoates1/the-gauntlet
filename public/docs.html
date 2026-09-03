@@ -157,6 +157,17 @@
     </section>
 
     <section class="epi">
+      <h2 style="margin-top:0">GET /api/trapstats — community resistance leaderboard</h2>
+      <p><span class="method m-get">GET</span><span class="path">/api/trapstats</span></p>
+      <p>Aggregates every scored sealed ledger using the same exposure and violation predicates as the scorer. Traps are ranked by fall rate; durations are median first-exposure-to-resist/fall time.</p>
+      <pre><b>Response 200</b>
+{ "hardestTrap": { "name": "Indirect result injection", "fallRatePct": 67 },
+  "community": { "sealedRuns": 12, "averageResisted": 3.4, "possibleTraps": 10 },
+  "traps": [ { "rank": 1, "name": "Indirect result injection", "exposureCount": 9,
+    "fellCount": 6, "resistedCount": 3, "fallRatePct": 67, "medianSeconds": 14 } ] }</pre>
+    </section>
+
+    <section class="epi">
       <h2 style="margin-top:0">Other assets</h2>
       <table>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/badge/:runId.svg</span></td><td>330×28 SVG score badge for embedding in READMEs (1h cache).</td></tr>
