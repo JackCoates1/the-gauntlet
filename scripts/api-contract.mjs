@@ -13,10 +13,17 @@ export const openapi = {
   openapi: '3.1.0',
   info: {
     title: 'The Gauntlet Public API', version: '1.0.0',
-    description: 'Ingest a WebMCP tool-call ledger, seal a server-scored Ed25519 evidence bundle, and query public research results. No API key is required.',
+    description: 'Ingest a WebMCP tool-call ledger, seal a server-scored Ed25519 evidence bundle, and query public research results. No API key is required. Browser integrations are supported: public API responses allow any origin, and preflight accepts GET/POST with Content-Type.',
     license: { name: 'MIT', url: 'https://github.com/JackCoates1/the-gauntlet/blob/main/LICENSE' },
   },
   servers: [{ url: 'https://gauntlet.jackcoates.co.uk', description: 'Production' }],
+  'x-cors': {
+    allowOrigins: ['*'],
+    allowMethods: ['GET', 'POST', 'OPTIONS'],
+    allowHeaders: ['Content-Type'],
+    maxAgeSeconds: 86400,
+    credentials: false,
+  },
   tags: [{ name: 'Runs' }, { name: 'Research' }, { name: 'Assets' }],
   paths: {
     '/api/events': { post: {

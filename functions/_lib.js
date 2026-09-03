@@ -4,6 +4,27 @@
 // the same definitions. This module re-exports them plus the badge SVG.
 export { TRAP_DEFS, engagement, evaluate } from '../embed/gauntlet-traps/traps.mjs';
 
+// The public API is deliberately credential-free: browser integrations can
+// read research data and submit the same bounded ledger events as any other
+// client. Keep the CORS policy here so every /api route gets identical
+// headers through functions/api/_middleware.js.
+export const CORS_HEADERS = Object.freeze({
+  'access-control-allow-origin': '*',
+  'access-control-allow-methods': 'GET, POST, OPTIONS',
+  'access-control-allow-headers': 'Content-Type',
+  'access-control-max-age': '86400',
+});
+
+export function corsPreflight() {
+  return new Response(null, { status: 204, headers: CORS_HEADERS });
+}
+
+export function withCors(response) {
+  const headers = new Headers(response.headers);
+  for (const [name, value] of Object.entries(CORS_HEADERS)) headers.set(name, value);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
 export const escapeSvg = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 
 const scoreParts = score => /^\d{1,3}\/\d{1,3}$/.test(String(score || '')) ? String(score) : '';
