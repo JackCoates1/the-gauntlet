@@ -6,6 +6,7 @@
 // injected. Safe by construction: every dynamic value is XML-escaped and
 // restricted to a strict allowlist before being placed in an attribute.
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+import { buildScorecardJsonLd, buildJsonLdScript } from '../_jsonld.js';
 
 // XML attribute escaping — covers & < > " '.
 const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -88,13 +89,29 @@ export async function onRequestGet({ params, env, request }) {
   const runId = params.id || '';
   let tags;
   let card = null;
+  let community = null;
   if (uuidRe.test(runId) && env?.GAUNTLET_DB) {
     const row = await env.GAUNTLET_DB.prepare('SELECT scorecard_json FROM runs WHERE id=?').bind(runId).first();
     if (row?.scorecard_json) {
       try { card = JSON.parse(row.scorecard_json); } catch { card = null; }
     }
+    // Community aggregate for the rating triple: one extra sealed-runs count
+    // — the same ledger the leaderboard and /api/trapstats aggregate. Failed
+    // fetch simply omits the rating; the scorecard still renders.
+    try {
+      const agg = await env.GAUNTLET_DB
+        .prepare(`SELECT COUNT(*) AS n, SUM(score * 1.0 / NULLIF(total, 0)) AS pctSum
+                  FROM runs WHERE scorecard_json IS NOT NULL AND total > 0`)
+        .first();
+      if (agg && agg.n > 0) {
+        // pctSum is the sum of per-run score/total fractions — a 0–1 scale —
+        // so the mean percentage is (pctSum / n) * 100.
+        community = { sealedRuns: agg.n, averageScorePct: agg.pctSum != null ? (agg.pctSum / agg.n) * 100 : null };
+      }
+    } catch { community = null; }
   }
   tags = card ? buildOgTags(card, origin) : buildFallbackOgTags(origin);
+  if (card) tags += buildJsonLdScript(buildScorecardJsonLd(card, origin, community));
 
   const html = await loadHtml();
   const injected = html.replace('</head>', tags + '</head>');

@@ -31,7 +31,10 @@ check(/^\s*Permissions-Policy:\s*camera=\(\), microphone=\(\), geolocation=\(\)\
 const pages = readdirSync(publicDir).filter(file => file.endsWith('.html'));
 for (const page of pages) {
   const html = readFileSync(join(publicDir, page), 'utf8');
-  check(!/<script(?![^>]*\bsrc=)[^>]*>[\s\S]*?<\/script>/i.test(html), `${page} has no inline script`);
+  // Inline <script type="application/ld+json"> blocks are structured-data
+  // payloads, not executed code — browsers never run them and CSP script-src
+  // does not apply. Everything else (executable inline script) stays banned.
+  check(!/<script(?![^>]*\bsrc=)(?![^>]*type=["']application\/ld\+json["'])[^>]*>[\s\S]*?<\/script>/i.test(html), `${page} has no inline executable script`);
   check(!/<style\b[^>]*>[\s\S]*?<\/style>/i.test(html), `${page} has no inline style block`);
   check(!/\sstyle\s*=/i.test(html), `${page} has no inline style attribute`);
   check(!/\son[a-z]+\s*=/i.test(html), `${page} has no inline event handler`);

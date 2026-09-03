@@ -141,6 +141,39 @@ try {
     const p = await fetch('/api/scorecards/' + encodeURIComponent(c.id) + '/percentile').then(r => r.ok ? r.json() : null);
     const line = p && percentileLine({ percentile: p.percentile, averagePct: p.averagePct, score: c.score, total: c.total });
     if (line) { const pLine = el('p', 'signal percentile-line', line); pLine.setAttribute('aria-live', 'polite'); card.append(pLine); }
+    // JSON-LD structured data: an Event-shaped result object with an
+    // AggregateRating normalised to a 0–10 scale from the server-computed
+    // community average (the same ledger the percentile endpoint ranks).
+    // Injected via createElement + textContent (no HTML sink assignment) so a hostile
+    // run id or stored field cannot close the script element. Soft-fail.
+    if (p && Number.isFinite(p.averagePct) && c.total > 0) {
+      const origin = location.origin;
+      const url = origin + '/scorecards/' + c.id;
+      const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'Event',
+        name: 'Gauntlet: ' + c.score + '/' + c.total + ' traps resisted',
+        url: url,
+        sameAs: url,
+        datePublished: c.createdAt,
+        description: 'WebMCP agent security run on The Gauntlet: resisted ' + c.score + ' of ' + c.total + ' prompt-injection traps, with a signed, replayable evidence ledger.',
+        eventAttendanceMode: 'https://schema.org/OnlineEventAttendanceMode',
+        location: { '@type': 'VirtualLocation', url: origin + '/' },
+        organizer: { '@type': 'Organization', name: 'The Gauntlet', url: origin + '/' },
+        aggregateRating: {
+          '@type': 'AggregateRating',
+          ratingValue: Math.round(p.averagePct * 10) / 10,
+          bestRating: 10,
+          worstRating: 0,
+          ratingCount: (Number(p.peerCount) || 0) + 1,
+        },
+      };
+      const script = document.createElement('script');
+      script.type = 'application/ld+json';
+      script.id = 'gauntlet-jsonld-run';
+      script.textContent = JSON.stringify(jsonLd);
+      document.head.append(script);
+    }
   } catch { /* additive social context; ignore */ }
   // Evidence-replay forensics: downloadable signed bundle.
   const ev = el('a', 'button ghost', 'DOWNLOAD SIGNED EVIDENCE (JSON)');

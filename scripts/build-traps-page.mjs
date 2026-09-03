@@ -5,6 +5,7 @@ import { writeFileSync, mkdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TRAP_DEFS, trapSlug } from '../embed/gauntlet-traps/traps.mjs';
+import { buildJsonLdScript, buildTrapsJsonLd } from '../functions/_jsonld.js';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
@@ -29,6 +30,7 @@ const html = `<!doctype html>
   <link rel="icon" href="/favicon.svg" type="image/svg+xml" /><link rel="icon" href="/favicon-32.png" sizes="32x32" type="image/png" /><link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="stylesheet" href="/styles.css" />
   <link rel="stylesheet" href="/traps.css" />
+${buildJsonLdScript(buildTrapsJsonLd(TRAP_DEFS, 'https://gauntlet.jackcoates.co.uk'))}
 </head>
 <body>
   <div class="noise"></div><main class="doc">
