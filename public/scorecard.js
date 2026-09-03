@@ -276,6 +276,21 @@ try {
     setTimeout(() => { downloadCard.disabled = false; downloadCard.textContent = 'DOWNLOAD CARD'; }, 1500);
   };
   card.append(downloadCard);
+  // Print / Save-as-PDF: judges archive printed evidence; this hands the
+  // browser's print dialog the @media print one-pager in styles.css.
+  const printBtn = el('button', 'ghost', '🖨 PRINT / SAVE PDF');
+  printBtn.setAttribute('aria-label', 'Print this scorecard or save it as a PDF');
+  printBtn.onclick = () => window.print();
+  card.append(printBtn);
+  // Print-only footer: visible on paper/PDF only — carries the verification
+  // statement, score, run id and canonical URL so the printed page is
+  // independently verifiable without the live site.
+  const printFooter = el('p', 'print-footer');
+  printFooter.append(
+    el('span', '', 'SIGNATURE VERIFIED AGAINST THE PUBLISHED PUBLIC KEY · SCORE ' + c.score + '/' + c.total + ' · RUN ' + c.id + ' · '),
+    (() => { const u = el('span', 'print-url', location.origin + '/scorecards/' + c.id); return u; })()
+  );
+  card.append(printFooter);
 } catch (e) {
   card.textContent = '';
   card.append(el('div', 'eyebrow', 'SECURITY SCORECARD'), el('h1', '', ''), el('p', 'lede', e.message || 'Scorecard unavailable.'));

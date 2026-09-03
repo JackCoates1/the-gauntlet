@@ -30,3 +30,27 @@ a:focus-visible,button:focus-visible,input:focus-visible,[tabindex]:focus-visibl
 .qr-wrap{display:flex;align-items:center;gap:14px;margin-top:18px}
 .qr-wrap .qr-code{width:96px;height:96px;border:1px solid var(--line);background:#fff;display:block}
 .qr-wrap p{margin:0;font:11px 'DM Mono';letter-spacing:.08em}
+
+/* ---- Print / PDF stylesheet: a judge hits Ctrl+P on /scorecards/:id and
+   gets a clean, ink-friendly one-pager. Interactive-only chrome (nav, buttons,
+   embed controls, replay, share, QR embed, homepage ticker, noise overlay)
+   is hidden; the acid/red/grey outcome strip is preserved with
+   print-color-adjust: exact so the printed page still reads as a verdict. ---- */
+.print-footer{display:none}
+@media print{
+  :root{--bg:#fff;--surface:#fff;--ink:#111;--muted:#555;--line:#bbb;--danger:#c0392b}
+  body{background:#fff;color:#111}
+  .noise,nav,footer,.button,.ghost,.embed-options,.replay,.demo-overlay,.recent-feed{display:none!important}
+  main{max-width:100%;padding:0}
+  .hero{padding:12px 0;border-bottom:1px solid #bbb;background:none}
+  .grid{grid-template-columns:1fr 1fr;margin:20px 0;border:1px solid #bbb}
+  .grid article{background:#fff;padding:16px}
+  .tl-seg{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tl-fail{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .tl-pass{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .grid article span.fail{color:#c0392b}
+  .signal{color:#111;font-weight:600}
+  .print-footer{display:block;margin-top:22px;padding-top:10px;border-top:1px solid #bbb;font:10px 'DM Mono',monospace;color:#555;letter-spacing:.05em}
+  .print-footer .print-url{font-weight:700;color:#111}
+  a.trap-link{color:#111;text-decoration:none;border:0}
+}
