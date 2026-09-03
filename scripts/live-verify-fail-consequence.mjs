@@ -41,7 +41,10 @@ console.log('sealed', runId, 'score', card.score + '/' + card.total);
 const fails = card.outcomes.filter(o => o.status === 'FAIL');
 console.log('FAIL outcomes:', fails.map(o => o.name).join(', '));
 for (const f of fails) {
-  const ok = typeof f.consequence === 'string' && f.consequence.length > 30 && f.consequence !== f.detail;
+  // On FAIL, detail IS the consequence (replacing pass-worded copy) — verify
+  // both fields exist and the pass-worded copy did not leak through.
+  const trap = (await import('../embed/gauntlet-traps/traps.mjs')).TRAP_DEFS.find(t => t.name === f.name);
+  const ok = f.consequence === trap.failConsequence && f.detail === trap.failConsequence && f.detail !== trap.detail;
   console.log((ok ? 'ok' : 'MISSING') + ' consequence [' + f.name + ']: ' + (f.consequence || '(none)'));
 }
 if (fails.length !== 2 || fails.some(f => !f.consequence)) { console.error('LIVE VERIFY FAILED'); process.exit(1); }
