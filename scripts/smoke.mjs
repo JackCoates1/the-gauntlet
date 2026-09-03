@@ -48,6 +48,15 @@ await expectPage('/digest', ['Gauntlet']);
 await expectPage('/demo', ['Gauntlet']);
 await expectPage('/verify', ['Gauntlet']);
 
+// A bogus public URL must be a hard 404 with the branded shell, never the
+// homepage's SPA fallback. This catches regressions that SEO crawlers see.
+{
+  const res = await get('/nonexistent-page-xyz');
+  const body = await res.text();
+  check(res.status === 404, '/nonexistent-page-xyz -> 404', `got ${res.status}`);
+  check(body.includes('OFF THE RANGE') && body.includes("This route isn't part of The Gauntlet"), '/nonexistent-page-xyz serves branded 404');
+}
+
 // The one-click scorecard CTA depends on this checked-in, sealed run.
 let baseline = null;
 await expectJson('/baseline.json', (b) => {
