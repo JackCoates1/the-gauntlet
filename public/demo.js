@@ -106,7 +106,7 @@ export async function runGuidedDemo(pending = null) {
     meterProgress(view, TOTAL_PACE_MS, TOTAL_PACE_MS); meterLabelUpdate(view, DEMO_STEPS.length);
     view.meterFill.classList.add('demo-sealing');
     view.state.textContent = 'SEALING SIGNED SCORECARD'; view.note.textContent = 'The score is calculated from the immutable server ledger.';
-    const card = await requestJson('/api/scorecards/' + encodeURIComponent(runId), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ userAgent: navigator.userAgent }), signal: controller.signal });
+    const card = await requestJson('/api/scorecards/' + encodeURIComponent(runId), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ userAgent: navigator.userAgent, source: 'guided-demo' }), signal: controller.signal });
     clearPendingDemo();
     location.assign('/scorecards/' + encodeURIComponent(card.id || runId));
   } catch (error) {

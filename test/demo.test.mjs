@@ -25,6 +25,7 @@ const browserModule = join(here, '..', 'public', 'embed', 'gauntlet-traps', 'tra
 check('demo imports the production embeddable engine', module.includes("from '/embed/gauntlet-traps/traps.mjs'") && module.includes('buildResistanceTimeline'));
 check('browser engine is a symlink to the single source module', existsSync(browserModule) && readlinkSync(browserModule) === '../../../embed/gauntlet-traps/traps.mjs');
 check('demo clearly labels the run as pre-recorded', page.includes('PRE-RECORDED SIMULATED RUN'));
+check('demo marks its local replay as simulated with no live API', module.includes("source: 'simulated'") && module.includes('SIMULATED / NO LIVE API'));
 check('demo links failed traps to catalog anchors', module.includes("'/traps#trap-' + trapSlug(outcome.name)"));
 check('demo only uses safe DOM rendering', !/\.innerHTML\s*=|insertAdjacentHTML/.test(module));
 if (failures) { console.log(`\\n${failures} failure(s)`); process.exit(1); }

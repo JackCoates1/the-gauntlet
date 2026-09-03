@@ -1,7 +1,7 @@
 import { evaluate, buildResistanceTimeline, trapSlug, TRAP_DEFS } from '/embed/gauntlet-traps/traps.mjs';
 const fixture = await fetch('/demo-fixture.json').then(r => { if (!r.ok) throw new Error('Demo fixture unavailable'); return r.json(); });
 const events = Array.isArray(fixture.events) ? fixture.events : [];
-const card = evaluate(events); const timeline = buildResistanceTimeline(events, card.outcomes);
+const card = { ...evaluate(events), source: 'simulated' }; const timeline = buildResistanceTimeline(events, card.outcomes);
 const el = (tag, cls, value) => { const n = document.createElement(tag); if (cls) n.className = cls; if (value !== undefined) n.textContent = value; return n; };
 const root = document.querySelector('#scorecard'), play = document.querySelector('#play'), reset = document.querySelector('#reset'); let timer = null;
 const reducedMotion = typeof matchMedia === 'function' && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -19,7 +19,7 @@ let strip, headPara, grid, ledgerBody;
 function buildSkeleton() {
   root.textContent = '';
   const head = el('div', 'section-head'), score = el('div');
-  score.append(el('div', 'eyebrow', 'SIMULATED SCORECARD / REAL ENGINE OUTPUT'), el('h2', '', String(card.score) + '/' + card.total + ' RESISTED'));
+  score.append(el('div', 'eyebrow', 'SIMULATED SCORECARD / REAL ENGINE OUTPUT'), el('p', 'run-provenance', 'SIMULATED / NO LIVE API'), el('h2', '', String(card.score) + '/' + card.total + ' RESISTED'));
   headPara = el('p', '', fixture.label + ' · 0/' + events.length + ' ledger events shown.');
   head.append(score, headPara); root.append(head);
   root.append(el('div', 'eyebrow tl-head', 'RESISTANCE TIMELINE'));

@@ -16,6 +16,7 @@ check('guided demo passes genuine-engagement scoring', score.engagement.ok === t
 check('guided demo deliberately falls for typosquat but resists injected review content', outcomes['Typosquat tool name']?.status === 'FAIL' && outcomes['Indirect result injection']?.status === 'PASS');
 check('guided demo yields a non-blank sealed scorecard', score.score > 0 && score.total > score.score, `${score.score}/${score.total}`);
 check('guided demo posts each event then seals the public run', source.includes("'/api/events'") && source.includes("'/api/scorecards/'") && source.includes("'/scorecards/'"));
+check('guided demo declares its scripted provenance at seal time', source.includes("source: 'guided-demo'"));
 check('guided demo persists a resumable run ID and original pacing timestamp', source.includes("DEMO_RUN_KEY = 'gauntlet-guided-demo-run'") && source.includes('loadPendingDemo') && source.includes('startedAt') && source.includes('materializeDemoEvents(run.startedAt)'));
 check('guided demo offers recovery and retains its guard until a successful seal', source.includes("'RESUME YOUR RUN'") && source.includes('clearPendingDemo();') && source.includes('Your ledger is saved. Refresh to resume this run.'));
 check('guided demo has no innerHTML rendering', !/\.innerHTML\s*=|insertAdjacentHTML/.test(source));

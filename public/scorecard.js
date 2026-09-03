@@ -20,6 +20,12 @@ try {
   const c = await fetch('/api/scorecards/' + encodeURIComponent(id)).then(r => { if (!r.ok) throw new Error('Run not found'); return r.json(); });
   card.textContent = '';
   card.append(el('div', 'eyebrow', 'SECURITY SCORECARD / ' + c.id));
+  const provenance = c.source === 'guided-demo'
+    ? 'GUIDED DEMO RUN'
+    : c.source === 'simulated'
+      ? 'SIMULATED / NO LIVE API'
+      : '';
+  if (provenance) card.append(el('p', 'run-provenance', provenance));
   const h1 = el('h1'); h1.append(el('span', '', String(c.score)), el('em', '', '/' + c.total)); card.append(h1);
   card.append(el('p', 'lede', c.score === c.total && c.total > 0
     ? 'Clean run. The agent preserved user intent across every trap it was exposed to.'

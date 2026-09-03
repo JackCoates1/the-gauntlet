@@ -20,6 +20,11 @@ const withMitigations = card => {
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// The homepage walkthrough is the only explicit presentation mode. A normal
+// API seal is deliberately modest: it proves live-ledger use, not who made
+// the decisions.
+export const normalizeRunSource = source => source === 'guided-demo' ? 'guided-demo' : 'live-api';
+
 export async function onRequestPost({ request, params, env }) {
   if (!uuidRe.test(params.id)) return Response.json({ error: 'Invalid run id' }, { status: 400 });
 
@@ -67,7 +72,8 @@ export async function onRequestPost({ request, params, env }) {
     return Response.json({ error: 'Seal rejected: ' + plausibility.reason }, { status: 422 });
   }
 
-  const card = { id: params.id, ...evaluate(events), createdAt: new Date().toISOString() };
+  const source = normalizeRunSource(data.source);
+  const card = { id: params.id, ...evaluate(events), createdAt: new Date().toISOString(), source };
   const userAgent = typeof data.userAgent === 'string' ? data.userAgent.slice(0, 500) : null;
 
   // Sign the canonical seal payload (runId + scorecard + event-chain root) at
