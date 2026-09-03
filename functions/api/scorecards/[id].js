@@ -1,6 +1,7 @@
 import { evaluate } from '../../_lib.js';
 import { sealScorecard } from '../../_evidence.js';
 import { rateLimit, tooMany, clientIp, checkRunPlausibility } from '../../_ratelimit.js';
+import { cleanupStaleRuns } from '../../_staleRuns.js';
 
 // Seal a run: compute the scorecard from the SERVER-SIDE event ledger only.
 // The request body is never used as a source of events (the previous
@@ -24,6 +25,10 @@ export async function onRequestPost({ request, params, env }) {
   } catch {
     return Response.json({ error: 'Invalid JSON' }, { status: 400 });
   }
+
+  // Preserve the run currently being resumed even if its original first
+  // event is old; the client may legitimately continue it after a long pause.
+  await cleanupStaleRuns(env, Date.now(), params.id);
 
   const existing = await env.GAUNTLET_DB.prepare('SELECT scorecard_json FROM runs WHERE id = ?').bind(params.id).first();
   if (existing?.scorecard_json) {

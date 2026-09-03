@@ -15,6 +15,17 @@ export function materializeDemoEvents(start = Date.now()) {
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 const el = (tag, cls, value) => { const node = document.createElement(tag); if (cls) node.className = cls; if (value !== undefined) node.textContent = value; return node; };
+const DEMO_RUN_KEY = 'gauntlet-guided-demo-run';
+
+function loadPendingDemo() {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(DEMO_RUN_KEY) || 'null');
+    return value && typeof value.runId === 'string' && typeof value.startedAt === 'number' ? value : null;
+  } catch { return null; }
+}
+
+function savePendingDemo(run) { sessionStorage.setItem(DEMO_RUN_KEY, JSON.stringify(run)); }
+function clearPendingDemo() { sessionStorage.removeItem(DEMO_RUN_KEY); }
 
 function showOverlay() {
   const shade = el('div', 'demo-overlay'); shade.setAttribute('role', 'status'); shade.setAttribute('aria-live', 'polite');
@@ -28,8 +39,12 @@ function showOverlay() {
 function progressLine(root, label, message, kind = '') { const row = el('div', 'demo-progress-line ' + kind); row.append(el('b', '', label), el('span', '', message)); root.append(row); }
 async function requestJson(url, options) { const response = await fetch(url, options); const body = await response.json().catch(() => ({})); if (!response.ok) throw new Error(body.error || 'The public scoring service is unavailable.'); return body; }
 
-export async function runGuidedDemo() {
-  const runId = crypto.randomUUID(), view = showOverlay(), events = materializeDemoEvents();
+export async function runGuidedDemo(pending = null) {
+  const run = pending || { runId: crypto.randomUUID(), startedAt: Date.now() };
+  const { runId } = run, view = showOverlay(), events = materializeDemoEvents(run.startedAt);
+  // Keep the run ID until a seal succeeds.  Refreshing, closing the tab, or a
+  // transient request failure can therefore continue the same evidence ledger.
+  savePendingDemo(run);
   const post = event => requestJson('/api/events', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ runId, event, userAgent: navigator.userAgent }) });
   try {
     await post(events[0]); progressLine(view.progress, 'LEDGER', 'Session started and recorded.', 'ok');
@@ -40,21 +55,21 @@ export async function runGuidedDemo() {
     }
     view.state.textContent = 'SEALING SIGNED SCORECARD'; view.note.textContent = 'The score is calculated from the immutable server ledger.';
     const card = await requestJson('/api/scorecards/' + encodeURIComponent(runId), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ userAgent: navigator.userAgent }) });
+    clearPendingDemo();
     location.assign('/scorecards/' + encodeURIComponent(card.id || runId));
   } catch (error) {
     view.state.textContent = 'DEMO COULD NOT COMPLETE'; view.note.textContent = error.message || 'Please try again later.';
-    progressLine(view.progress, 'PAUSED', 'No scorecard was created.', 'fail'); sessionStorage.removeItem('gauntlet-guided-demo-used');
+    progressLine(view.progress, 'PAUSED', 'Your ledger is saved. Refresh to resume this run.', 'fail');
   }
 }
 
 function armDemo() {
-  const controls = document.querySelectorAll('[data-guided-demo]'); const alreadyUsed = sessionStorage.getItem('gauntlet-guided-demo-used') === '1';
+  const controls = document.querySelectorAll('[data-guided-demo]'); const pending = loadPendingDemo();
   for (const control of controls) {
-    if (alreadyUsed) { control.setAttribute('aria-disabled', 'true'); control.textContent = 'DEMO USED THIS SESSION'; continue; }
+    if (pending) control.textContent = 'RESUME YOUR RUN';
     control.addEventListener('click', event => {
-      event.preventDefault(); if (sessionStorage.getItem('gauntlet-guided-demo-used') === '1') return;
-      sessionStorage.setItem('gauntlet-guided-demo-used', '1'); for (const item of controls) { item.setAttribute('aria-disabled', 'true'); item.textContent = 'DEMO RUNNING…'; }
-      runGuidedDemo();
+      event.preventDefault(); for (const item of controls) { item.setAttribute('aria-disabled', 'true'); item.textContent = pending ? 'RESUMING…' : 'DEMO RUNNING…'; }
+      runGuidedDemo(pending);
     });
   }
 }
