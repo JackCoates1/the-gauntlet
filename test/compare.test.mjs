@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { buildCompareOgTags, buildCompareFallbackOgTags, onRequestGet } from '../functions/compare/[a]/[b].js';
+import { onRequestGet as onCompareIndex } from '../functions/compare/index.js';
 
 let failures = 0;
 const check = (name, ok, extra = '') => { if (ok) console.log('ok:', name); else { failures++; console.log('FAIL:', name, extra); } };
@@ -34,6 +35,8 @@ check('OG route returns HTML with dynamic preview', res.status === 200 && body.i
 check('OG tags precede closing head', body.indexOf('og:title') < body.indexOf('</head>'));
 const invalid = await onRequestGet({ params: { a: 'bad', b: b.id }, env: fakeEnv, request: new Request('https://x.test/compare/bad/' + b.id) });
 check('invalid path gets branded fallback without DB access', (await invalid.text()).includes('run comparison'));
+const index = await onCompareIndex();
+check('query-string /compare handler serves the static comparison UI', index.status === 200 && (await index.text()).includes('Promise.all([load(aId), load(bId)])'));
 
 if (failures) process.exit(1);
 console.log('\nall comparison tests passed');
