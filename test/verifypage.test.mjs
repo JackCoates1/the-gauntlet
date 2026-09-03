@@ -12,6 +12,8 @@ const here = dirname(fileURLToPath(import.meta.url)); const root = join(here, '.
 const html = readFileSync(join(root, 'public/verify.html'), 'utf8');
 const js = readFileSync(join(root, 'public/verify.js'), 'utf8');
 const index = readFileSync(join(root, 'public/index.html'), 'utf8');
+const authenticFixture = JSON.parse(readFileSync(join(root, 'public/verify-authentic-fixture.json'), 'utf8'));
+const tamperedFixture = JSON.parse(readFileSync(join(root, 'public/verify-tampered-fixture.json'), 'utf8'));
 
 check('verify page title exists', html.includes('Verify Evidence'));
 check('page has JSON textarea', html.includes('id="bundle-json"'));
@@ -26,7 +28,10 @@ check('no runtime raw HTML injection', !/innerHTML/.test(html) && !/innerHTML/.t
 check('browser code uses textContent', js.includes('.textContent'));
 check('browser code supports drag-drop', js.includes("dataTransfer?.files"));
 check('browser code supports chooser', js.includes("bundle-file"));
-check('browser code has no fetch', !/fetch\s*\(/.test(js));
+check('page has authentic demo control', html.includes('id="btn-authentic-demo"'));
+check('page has tampered demo control', html.includes('id="btn-tamper-demo"'));
+check('demo controls are grouped side by side', html.includes('class="fixture-controls"'));
+check('browser code loads only committed demo fixtures', js.includes("fetch(path)") && js.includes("'/verify-authentic-fixture.json'") && js.includes("'/verify-tampered-fixture.json'"));
 check('page key matches server key literal', js.includes(PUBLIC_KEY_HEX));
 
 const kp = await crypto.subtle.generateKey({ name: 'Ed25519' }, true, ['sign', 'verify']);
@@ -56,6 +61,18 @@ check('valid result says signature valid', /signature valid/.test(valid.verdicts
 check('valid result says score independently reproduced', /independently reproduced/.test(valid.verdicts[3]?.detail));
 check('deriveScore equals shared evaluator clean score', JSON.stringify(client.deriveScore(bundle.replay).score) === JSON.stringify(evaluate(clean).score));
 check('deriveScore equals shared evaluator clean total', client.deriveScore(bundle.replay).total === evaluate(clean).total);
+
+// The public click-through fixtures are an actual server-sealed bundle and a
+// one-field alteration. Both must traverse the same exported verifier path.
+const productionClient = await import('../public/verify.js?t=' + Date.now());
+check('authentic committed fixture passes server verifier', (await verifyBundle(authenticFixture)).ok);
+const authenticDemo = await productionClient.verifyBundleClient(authenticFixture);
+check('authentic committed fixture passes browser verifier', authenticDemo.ok, JSON.stringify(authenticDemo));
+check('authentic demo reproduces its sealed score', authenticDemo.score?.score === 5 && authenticDemo.score?.total === 6);
+const tamperedDemo = await productionClient.verifyBundleClient(tamperedFixture);
+check('tampered committed fixture fails browser verifier', !tamperedDemo.ok);
+check('tampered demo identifies the altered event', tamperedDemo.verdicts.at(-1)?.detail.includes('chain diverges at event 4 of 5'));
+check('tampered demo changes only the advertised args field', authenticFixture.replay.every((event, i) => i === 3 || JSON.stringify(event) === JSON.stringify(tamperedFixture.replay[i])) && authenticFixture.replay[3].args.items[0].quantity === 1 && tamperedFixture.replay[3].args.items[0].quantity === 2);
 
 // Every event position diverges with an exact human-readable location.
 for (let i = 0; i < bundle.replay.length; i++) {

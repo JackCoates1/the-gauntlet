@@ -106,9 +106,21 @@ function render(out, result) {
   out.append(box);
 }
 function parseAndVerify(raw, out) { let bundle; try { bundle = JSON.parse(raw); } catch (e) { render(out, { ok: false, verdicts: [{ ok: false, detail: 'invalid JSON: ' + e.message }] }); return; } verifyBundleClient(bundle).then(result => render(out, result)).catch(e => render(out, { ok: false, verdicts: [{ ok: false, detail: 'verification error: ' + e.message }] })); }
+async function loadDemoFixture(path, input, out) {
+  try {
+    const response = await fetch(path);
+    if (!response.ok) throw new Error('fixture unavailable');
+    input.value = await response.text();
+    parseAndVerify(input.value, out);
+  } catch (e) {
+    render(out, { ok: false, verdicts: [{ ok: false, detail: 'could not load verifier demo: ' + e.message }] });
+  }
+}
 if (typeof document !== 'undefined') {
   const out = document.getElementById('verdict'); const input = document.getElementById('bundle-json'); const drop = document.getElementById('drop-zone');
   document.getElementById('btn-verify')?.addEventListener('click', () => parseAndVerify(input.value, out));
+  document.getElementById('btn-authentic-demo')?.addEventListener('click', () => loadDemoFixture('/verify-authentic-fixture.json', input, out));
+  document.getElementById('btn-tamper-demo')?.addEventListener('click', () => loadDemoFixture('/verify-tampered-fixture.json', input, out));
   for (const event of ['dragenter', 'dragover']) drop?.addEventListener(event, e => { e.preventDefault(); drop.classList.add('drop-ready'); });
   for (const event of ['dragleave', 'drop']) drop?.addEventListener(event, e => { e.preventDefault(); drop.classList.remove('drop-ready'); });
   drop?.addEventListener('drop', async e => { const file = e.dataTransfer?.files?.[0]; if (!file) return; input.value = await file.text(); parseAndVerify(input.value, out); });
