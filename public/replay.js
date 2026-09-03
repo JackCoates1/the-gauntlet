@@ -1,6 +1,7 @@
 // Browser-only helpers for replaying a signed evidence ledger. Keeping the
 // timing/state model separate from the scorecard DOM makes it easy to test
 // without trusting or modifying the signed bundle.
+import { redactArgs } from '../embed/gauntlet-traps/traps.mjs';
 const timestamp = event => {
   const value = Date.parse(event?.timestamp || event?.createdAt || '');
   return Number.isFinite(value) ? value : 0;
@@ -58,6 +59,6 @@ export function replayTrapStates(events = [], timeline = [], eventCount = 0) {
 }
 
 export function formatReplayArgs(args) {
-  try { return JSON.stringify(args ?? {}); }
+  try { return JSON.stringify(redactArgs(args ?? {})); }
   catch { return '[unserializable args]'; }
 }

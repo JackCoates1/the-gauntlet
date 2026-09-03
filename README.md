@@ -56,7 +56,7 @@ Every scorecard has a downloadable, cryptographically-signed evidence bundle:
 GET /api/scorecards/<run-id>/evidence
 ```
 
-The bundle contains a hash-chained, timestamped replay of the exact tool-call sequence (each step hashes the previous step's hash plus the canonicalized event, rooted at `genesis`) plus an Ed25519 signature over the canonical payload. Verify offline with the public key published in `functions/_evidence.js` (`PUBLIC_KEY_HEX`) and the `verifyBundle()` helper.
+The public bundle contains a hash-chained, timestamped replay with PII, phone, card and credential-shaped arguments redacted for safe sharing. Its hashes retain the commitment to the canonical sealed events, and its Ed25519 signature remains over the unchanged canonical payload. Verify offline with the public key published in `functions/_evidence.js` (`PUBLIC_KEY_HEX`) and the `verifyBundle()` helper.
 
 ## Testing & CI
 

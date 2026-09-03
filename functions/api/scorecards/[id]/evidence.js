@@ -1,4 +1,5 @@
 import { buildEvidenceBundle, buildResistanceTimeline } from '../../../_evidence.js';
+import { redactArgs } from '../../../../embed/gauntlet-traps/traps.mjs';
 
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
@@ -28,6 +29,11 @@ export async function onRequestGet({ params, env }) {
   // Resistance timeline: per-trap exposure→outcome durations for the
   // scorecard page strip. Derived from the same ledger; additive field.
   bundle.resistanceTimeline = buildResistanceTimeline(events, card.outcomes);
+  // Preserve the raw arguments only in the sealed server ledger. The hashes
+  // and signed root still commit to them, but the public artifact is safe to
+  // share and the verifier knows this replay is a redacted presentation view.
+  bundle.replay = bundle.replay.map(step => ({ ...step, args: redactArgs(step.args) }));
+  bundle.redaction = { applied: true, mode: 'presentation-only' };
   return new Response(JSON.stringify(bundle, null, 2), {
     headers: {
       'content-type': 'application/json',

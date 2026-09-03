@@ -1,4 +1,5 @@
 import { verifyRun, buildResistanceTimeline } from '../_evidence.js';
+import { redactArgs } from '../../embed/gauntlet-traps/traps.mjs';
 import { csvResponse } from '../_csv.js';
 
 const MAX_LIMIT = 50;
@@ -19,7 +20,11 @@ export async function onRequestGet({ request, env }) {
     const eventRows = await env.GAUNTLET_DB.prepare('SELECT tool_name, args_json, created_at FROM events WHERE run_id = ? ORDER BY id').bind(row.id).all();
     const events = (eventRows.results || []).map(e => ({ tool: e.tool_name, args: parseArgs(e.args_json), createdAt: e.created_at }));
     const verified = (await verifyRun(events, card, row.sig)).verified;
-    if (!verifiedOnly || verified) runs.push({ row, verified, timeline: buildResistanceTimeline(events, card.outcomes) });
+    // CSV intentionally exports aggregate timeline columns only. Keep a
+    // redacted presentation copy here so any future argument-derived column
+    // cannot accidentally serialize raw ledger values.
+    const presentationEvents = events.map(event => ({ ...event, args: redactArgs(event.args) }));
+    if (!verifiedOnly || verified) runs.push({ row, verified, timeline: buildResistanceTimeline(events, card.outcomes), presentationEvents });
   }
   const exposure = new Map();
   for (const run of runs) for (const trap of run.timeline) if (trap.status !== 'NOT TESTED') {

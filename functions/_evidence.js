@@ -178,12 +178,23 @@ export async function verifyRun(events, card, sig, publicKeyHex = PUBLIC_KEY_HEX
 // Offline verification, exported so tests (and other developers using the
 // embeddable library) can confirm a bundle without trusting the server.
 export async function verifyBundle(bundle) {
-  const steps = await buildReplay(bundle.replay.map(s => ({ tool: s.tool, args: s.args, createdAt: s.timestamp })));
-  for (let i = 0; i < steps.length; i++) {
-    if (steps[i].hash !== bundle.replay[i].hash || steps[i].prevHash !== bundle.replay[i].prevHash) return { ok: false, reason: `hash chain broken at step ${i + 1}` };
+  if (!bundle || !Array.isArray(bundle.replay)) return { ok: false, reason: 'missing replay' };
+  if (bundle.redaction?.applied) {
+    // Argument preimages were intentionally removed from this public view.
+    // Verify its chain links/root commitment; the signature below binds root.
+    for (let i = 0; i < bundle.replay.length; i++) {
+      const step = bundle.replay[i];
+      if (!step?.hash || step.prevHash !== (i ? bundle.replay[i - 1].hash : 'genesis')) return { ok: false, reason: `hash chain broken at step ${i + 1}` };
+    }
+    if (bundle.replay.length && bundle.replay.at(-1).hash !== bundle.eventsRoot) return { ok: false, reason: 'events root mismatch' };
+  } else {
+    const steps = await buildReplay(bundle.replay.map(s => ({ tool: s.tool, args: s.args, createdAt: s.timestamp })));
+    for (let i = 0; i < steps.length; i++) {
+      if (steps[i].hash !== bundle.replay[i].hash || steps[i].prevHash !== bundle.replay[i].prevHash) return { ok: false, reason: `hash chain broken at step ${i + 1}` };
+    }
+    if (await chainRoot(steps) !== bundle.eventsRoot) return { ok: false, reason: 'events root mismatch' };
   }
-  if (await chainRoot(steps) !== bundle.eventsRoot) return { ok: false, reason: 'events root mismatch' };
-  const { signature, replay, scorecard, publicKey, resistanceTimeline, ...payload } = bundle;
+  const { signature, replay, scorecard, publicKey, resistanceTimeline, redaction, ...payload } = bundle;
   const key = await crypto.subtle.importKey('raw', hexToBytes(publicKey), { name: 'Ed25519' }, false, ['verify']);
   const sigBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
   const ok = await crypto.subtle.verify({ name: 'Ed25519' }, key, sigBytes, enc.encode(canonicalize(payload)));

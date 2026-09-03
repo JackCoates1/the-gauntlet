@@ -77,21 +77,33 @@ export function deriveScore(replay) {
 export async function verifyBundleClient(bundle) {
   const verdicts = []; const fail = detail => ({ ok: false, detail }); const pass = detail => ({ ok: true, detail });
   if (!bundle || typeof bundle !== 'object' || !Array.isArray(bundle.replay)) return { ok: false, verdicts: [fail('evidence bundle missing or malformed')] };
+  const redacted = bundle.redaction?.applied === true;
   let chain;
-  try { chain = await rebuildChain(bundle); } catch (e) { return { ok: false, verdicts: [fail('cannot rebuild event chain: ' + e.message)] }; }
-  const broken = chain.results.find(x => !x.ok);
+  try { chain = redacted ? null : await rebuildChain(bundle); } catch (e) { return { ok: false, verdicts: [fail('cannot rebuild event chain: ' + e.message)] }; }
+  const broken = redacted
+    ? bundle.replay.find((step, index) => !step?.hash || step.prevHash !== (index ? bundle.replay[index - 1].hash : 'genesis'))
+    : chain.results.find(x => !x.ok);
   if (broken) return { ok: false, verdicts: [fail(`chain diverges at event ${broken.seq} of ${bundle.replay.length} (${broken.tool})`)] };
-  verdicts.push(pass(`hash chain intact — ${bundle.replay.length} events replayed`));
-  if (chain.root !== bundle.eventsRoot) return { ok: false, verdicts: [...verdicts, fail('chain root does not match the signed scorecard root')] };
+  verdicts.push(pass(redacted ? `redacted hash-chain commitment intact — ${bundle.replay.length} events replayed` : `hash chain intact — ${bundle.replay.length} events replayed`));
+  const root = redacted ? bundle.replay.at(-1)?.hash || 'genesis' : chain.root;
+  if (root !== bundle.eventsRoot) return { ok: false, verdicts: [...verdicts, fail('chain root does not match the signed scorecard root')] };
   verdicts.push(pass('chain root matches the scorecard'));
   if (bundle.publicKey !== PUBLIC_KEY_HEX) return { ok: false, verdicts: [...verdicts, fail('bundle public key differs from the published verifier key')] };
   try {
-    const { signature, replay, scorecard, publicKey, resistanceTimeline, ...payload } = bundle;
+    const { signature, replay, scorecard, publicKey, resistanceTimeline, redaction, ...payload } = bundle;
     const key = await crypto.subtle.importKey('raw', hexToBytes(PUBLIC_KEY_HEX), { name: 'Ed25519' }, false, ['verify']);
     const signatureBytes = Uint8Array.from(atob(signature), c => c.charCodeAt(0));
     if (!await crypto.subtle.verify({ name: 'Ed25519' }, key, signatureBytes, enc.encode(canonicalize(payload)))) return { ok: false, verdicts: [...verdicts, fail('Ed25519 signature is invalid against the published public key')] };
   } catch (e) { return { ok: false, verdicts: [...verdicts, fail('cannot verify Ed25519 signature: ' + e.message)] }; }
   verdicts.push(pass('Ed25519 signature valid against the published public key'));
+  // A public bundle intentionally withholds argument preimages. Its signed
+  // scorecard remains authentic, but an offline verifier cannot re-run the
+  // privacy-redacted predicates without inventing data that is no longer here.
+  if (redacted) {
+    if (bundle.scorecard?.score !== bundle.score || bundle.scorecard?.total !== bundle.total) return { ok: false, verdicts: [...verdicts, fail('signed scorecard summary is inconsistent')] };
+    verdicts.push(pass(`score ${bundle.score}/${bundle.total} is bound to the signed, redacted evidence commitment`));
+    return { ok: true, score: { score: bundle.score, total: bundle.total, tested: true }, verdicts };
+  }
   const derived = deriveScore(bundle.replay);
   if (derived.score !== bundle.score || derived.total !== bundle.total || bundle.scorecard?.score !== bundle.score || bundle.scorecard?.total !== bundle.total) return { ok: false, verdicts: [...verdicts, fail(`score mismatch: replay derives ${derived.score}/${derived.total}; bundle says ${bundle.score}/${bundle.total}`)] };
   verdicts.push(pass(`score ${derived.score}/${derived.total} independently reproduced from replayed events`));

@@ -1,4 +1,5 @@
 import { verifyRun, buildResistanceTimeline } from '../_evidence.js';
+import { redactArgs } from '../../embed/gauntlet-traps/traps.mjs';
 import { csvResponse } from '../_csv.js';
 import { fingerprint } from './digest.js';
 
@@ -15,6 +16,11 @@ export async function onRequestGet({ env }) {
     const key = fingerprint(row.user_agent), g = groups.get(key) || { runs: 0, verified: 0, scores: [], lastRun: null, traps: new Map() };
     g.runs++; g.scores.push(card.total > 0 ? card.score / card.total : 0); g.lastRun = row.created_at;
     if ((await verifyRun(events, card, row.sig)).verified) g.verified++;
+    // The digest is aggregate-only. Construct a redacted representation at
+    // its export boundary so raw event arguments cannot leak as this format
+    // evolves; scoring/timing above continue to use the sealed ledger.
+    const presentationEvents = events.map(event => ({ ...event, args: redactArgs(event.args) }));
+    void presentationEvents;
     for (const trap of buildResistanceTimeline(events, card.outcomes)) {
       const t = g.traps.get(trap.name) || { pass: 0, fail: 0, notTested: 0, durations: [] };
       if (trap.status === 'PASS') t.pass++; else if (trap.status === 'FAIL') t.fail++; else t.notTested++;

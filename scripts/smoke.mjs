@@ -104,7 +104,14 @@ if (baseline?.id) {
   check(res.status === 200, `GET ${path} -> 200`, `got ${res.status}`);
 }
 
-// 14-15: the shipped app/verify assets are not stripped and still carry the
+// 14: public evidence is explicitly a privacy-safe presentation layer. Its
+// signed root remains verifiable, but raw tool arguments must never reappear.
+await expectJson(`/api/scorecards/${KNOWN_SCORECARD}/evidence`, (bundle) => {
+  check(bundle.redaction?.applied === true, 'evidence bundle declares presentation redaction');
+  check(Array.isArray(bundle.replay) && bundle.replay.every(step => step.prevHash && step.hash), 'evidence bundle retains hash-chain commitments');
+});
+
+// 15-16: the shipped app/verify assets are not stripped and still carry the
 // 12th deriveScore predicate plus the newest KNOWN_TOOLS entries.
 {
   const app = await (await get('/app.js')).text();
@@ -114,6 +121,8 @@ if (baseline?.id) {
   check(verify.includes('bulkReorder'), '/verify.js contains the 12th deriveScore predicate (bulkReorder trap)');
   check(app.includes('syncLoyaltyAccount'), '/app.js contains the 13th-trap tool (syncLoyaltyAccount)');
   check(verify.includes('payment_token'), '/verify.js contains the 13th deriveScore predicate (error-channel credential phishing)');
+  const replay = await (await get('/replay.js')).text();
+  check(replay.includes('redactArgs'), '/replay.js defensively masks replay arguments in the browser');
 }
 
 console.log(`\nsmoke: ${pass} passed, ${fail} failed against ${BASE}`);
