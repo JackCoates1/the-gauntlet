@@ -27,6 +27,7 @@ check(client.includes('validScorecard') && client.includes("'/leaderboard'"), '4
 check(isPassthroughPath('/api/recent'), 'API prefix is excluded from catch-all');
 check(isPassthroughPath('/api'), 'bare API prefix is excluded from catch-all');
 check(isPassthroughPath('/styles.css') && isPassthroughPath('/favicon.svg'), 'static asset paths are excluded from catch-all');
+check(isPassthroughPath('/') && isPassthroughPath('/traps') && isPassthroughPath('/docs/'), 'extensionless static pages are excluded from catch-all');
 check(!isPassthroughPath('/nonexistent-page-xyz') && !isPassthroughPath('/some/missing/path'), 'unmatched public paths reach the 404 handler');
 check(fn.includes('env.ASSETS.fetch') && fn.includes('status: 404'), 'catch-all fetches the static shell and returns status 404');
 
@@ -41,6 +42,8 @@ const api = await onRequest({ request: new Request('https://gauntlet.example/api
 check(await api.text() === 'api' && nextCalls === 1, 'API route is passed through instead of converted to HTML 404');
 const asset = await onRequest({ request: new Request('https://gauntlet.example/styles.css'), env: { ASSETS: assets }, next: async () => { nextCalls++; return new Response('asset'); } });
 check(await asset.text() === 'asset' && nextCalls === 2, 'asset route is passed through instead of converted to HTML 404');
+const staticPage = await onRequest({ request: new Request('https://gauntlet.example/traps'), env: { ASSETS: assets }, next: async () => { nextCalls++; return new Response('traps'); } });
+check(await staticPage.text() === 'traps' && nextCalls === 3, 'extensionless static page is passed through instead of converted to HTML 404');
 const head = await onRequest({ request: new Request('https://gauntlet.example/nope', { method: 'HEAD' }), env: { ASSETS: assets }, next: async () => new Response('next') });
 check(head.status === 404 && (await head.text()) === '', 'unknown HEAD route keeps 404 status without an HTML body');
 
