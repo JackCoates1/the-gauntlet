@@ -27,3 +27,15 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: e1ba932163ebdc6eac5555c6d95a5944
           command: pages deploy public --project-name=the-gauntlet
+
+  smoke:
+    needs: deploy
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Post-deploy live smoke test
+        run: node scripts/smoke.mjs https://gauntlet.jackcoates.co.uk

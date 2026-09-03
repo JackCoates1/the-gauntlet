@@ -61,7 +61,7 @@ The bundle contains a hash-chained, timestamped replay of the exact tool-call se
 
 [![Tests](https://github.com/JackCoates1/the-gauntlet/actions/workflows/ci.yml/badge.svg)](https://github.com/JackCoates1/the-gauntlet/actions/workflows/ci.yml)
 
-All changes are verified by CI on every push: the full test suite runs automatically on GitHub Actions, and successful pushes to `main` deploy straight to Cloudflare Pages. The production path is therefore **push → test → live site**, with no manual deployment step.
+All changes are verified by CI on every push: the full test suite runs automatically on GitHub Actions, and successful pushes to `main` deploy straight to Cloudflare Pages. The production path is therefore **push → test → deploy → live smoke test**, with no manual deployment step — the final `smoke` job fetches the deployed site itself (pages, research APIs, OpenAPI contract, Atom feed, OG scorecard route, shipped assets) and fails the pipeline if production isn't actually serving what was shipped, so a Pages path regression or stripped asset is caught within a minute of shipping.
 
 ## Embeddable trap library
 
