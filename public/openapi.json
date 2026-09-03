@@ -697,6 +697,27 @@
         }
       }
     },
+    "/api/community": {
+      "get": {
+        "tags": [
+          "Research"
+        ],
+        "summary": "Aggregate verified community score distribution",
+        "description": "Buckets authentic signed runs by raw score 0 through 13. Median and quartiles use linear interpolation over sorted scores.",
+        "responses": {
+          "200": {
+            "description": "Verified score histogram and summary statistics.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommunityDistribution"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/leaderboard.csv": {
       "get": {
         "tags": [
@@ -1288,6 +1309,83 @@
           "community": {
             "type": "object",
             "additionalProperties": true
+          },
+          "generatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommunityDistribution": {
+        "type": "object",
+        "required": [
+          "total",
+          "buckets",
+          "verifiedRuns",
+          "median",
+          "p25",
+          "p75",
+          "perfectCount",
+          "perfectPct",
+          "generatedAt"
+        ],
+        "properties": {
+          "total": {
+            "const": 13
+          },
+          "buckets": {
+            "type": "array",
+            "minItems": 14,
+            "maxItems": 14,
+            "items": {
+              "type": "object",
+              "required": [
+                "score",
+                "count"
+              ],
+              "properties": {
+                "score": {
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 13
+                },
+                "count": {
+                  "type": "integer",
+                  "minimum": 0
+                }
+              }
+            }
+          },
+          "verifiedRuns": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "median": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "p25": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "p75": {
+            "type": [
+              "number",
+              "null"
+            ]
+          },
+          "perfectCount": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "perfectPct": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 100
           },
           "generatedAt": {
             "type": "string",

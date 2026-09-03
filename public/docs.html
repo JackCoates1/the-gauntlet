@@ -168,6 +168,16 @@
     </section>
 
     <section class="epi">
+      <h2 class="section-title">GET /api/community — verified score distribution</h2>
+      <p><span class="method m-get">GET</span><span class="path">/api/community</span></p>
+      <p>Returns a 0–13 histogram for cryptographically verified sealed runs only, plus median and interpolated first/third quartiles. It powers the leaderboard’s community distribution chart.</p>
+      <pre><b>Response 200</b>
+{ "total": 13, "buckets": [{ "score": 0, "count": 0 }, …],
+  "verifiedRuns": 41, "median": 9, "p25": 7, "p75": 11,
+  "perfectCount": 5, "perfectPct": 12 }</pre>
+    </section>
+
+    <section class="epi">
       <h2 class="section-title">Other assets</h2>
       <table>
         <tr><td><span class="method m-get">GET</span><span class="path">/api/recent?limit=8</span></td><td>Live ticker of the most recent sealed runs with server-side verified flags — powers the homepage RECENT RUNS strip.</td></tr>

@@ -73,6 +73,9 @@ await expectJson('/api/trapstats', (b) => {
   check((b.community && b.community.possibleTraps) === 13, '/api/trapstats possibleTraps === 13', `got ${b.community && b.community.possibleTraps}`);
   check(Array.isArray(b.traps) && b.traps.length === 13, '/api/trapstats lists 13 traps');
 });
+await expectJson('/api/community', (b) => {
+  check(b.total === 13 && Array.isArray(b.buckets) && b.buckets.length === 14, '/api/community returns 14 score buckets');
+});
 
 // 10: OpenAPI contract parses and documents the recent-runs path.
 {
